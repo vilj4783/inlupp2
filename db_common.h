@@ -1,0 +1,21 @@
+#pragma once
+
+enum ACTION {
+    ADD_MERCH,
+    LIST_MERCH,
+    REMOVE_MERCH,
+    EDIT_MERCH,
+    SHOW_STOCK,
+    REPLENISH,
+    CREATE_CART,
+    REMOVE_CART,
+    ADD_TO_CART,
+    REMOVE_FROM_CART,
+    CALCULATE_COST,
+    CHECKOUT,
+    UNDO,
+    QUIT,
+    PERSISTENCE_ON_FILE
+};
+
+typedef enum ACTION action_t;
