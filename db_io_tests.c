@@ -50,7 +50,17 @@ void test_ask_question_action(void) {
 }
 
 void test_ask_question_confirm(void) {
-  CU_ASSERT_EQUAL(1 + 1, 2);
+  CU_ASSERT(ask_question_confirm_Y("input: Y"));
+  CU_ASSERT(ask_question_confirm_Y("input: y"));
+
+  CU_ASSERT_FALSE(ask_question_confirm_Y("input: o"));
+  CU_ASSERT_FALSE(ask_question_confirm_Y("input: p"));
+
+  CU_ASSERT_FALSE(ask_question_confirm_N("input: N"));
+  CU_ASSERT_FALSE(ask_question_confirm_N("input: n"));
+
+  CU_ASSERT(ask_question_confirm_N("input: o"));
+  CU_ASSERT(ask_question_confirm_N("input: p"));
 }
 
 int main() {
@@ -74,7 +84,7 @@ int main() {
   // copy a line below and change the information
   if (
     (CU_add_test(my_test_suite, "test ask_question_action", test_ask_question_action) == NULL) ||
-    // (CU_add_test(my_test_suite, "Basic arithmetics", test2) == NULL) ||
+    (CU_add_test(my_test_suite, "test ask_question_confirm (Y & N)", test_ask_question_confirm) == NULL) ||
     0
   )
     {

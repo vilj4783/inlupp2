@@ -53,6 +53,11 @@ action_t convert_action(char *str)
 
 }
 
+bool bool_valid(char *str)
+{
+    return str[0] != '\n';
+}
+
 bool convert_Y(char *str)
 {
     return toupper(str[0]) == 'Y';
@@ -70,10 +75,10 @@ action_t ask_question_action(char *question) {
 
 bool ask_question_confirm_Y(char *question)
 {
-    // TODO: returns true on 'Y' or 'y' and false on all other
+    return ask_question(question, (check_func *) bool_valid, (convert_func *) convert_Y).bool_value;
 }
 
 bool ask_question_confirm_N(char *question)
 {
-    // TODO: returns false on 'N' or 'n' and true on all other
+    return ask_question(question, (check_func *) bool_valid, (convert_func *) convert_N).bool_value;
 }

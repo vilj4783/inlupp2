@@ -9,6 +9,7 @@ typedef union {
   char *string_value;
   char char_value;
   action_t action;
+  bool bool_value;
 } answer_t;
 
 typedef bool check_func(char *);
