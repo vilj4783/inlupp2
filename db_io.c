@@ -18,6 +18,8 @@ bool valid_action(char *str)
     case 'L': return true;
     case 'D': return true;
     case 'E': return true;
+    case 'S': return true;
+    case 'P': return true;
     case 'C': return true;
     case 'R': return true;
     case '+': return true;
@@ -40,6 +42,8 @@ action_t convert_action(char *str)
     case 'L': return LIST_MERCH;
     case 'D': return REMOVE_MERCH;
     case 'E': return EDIT_MERCH;
+    case 'S': return SHOW_STOCK;
+    case 'P': return REPLENISH;
     case 'C': return CREATE_CART;
     case 'R': return REMOVE_CART;
     case '+': return ADD_TO_CART;
