@@ -14,6 +14,8 @@ MAIN_TEST = db_io.o db_main.o utils.o db_backend_mockup.o
 # rules
 all: *.o
 
+test_all: $(BINS)
+
 
 utils.o: ./libs/utils/utils.o
 
