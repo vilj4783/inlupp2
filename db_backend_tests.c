@@ -1,66 +1,140 @@
-#include "db_backend.h"
 #include <CUnit/Basic.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include "db_backend.h"
 
-int init_suite(void) {
-  // Change this function if you want to do something *before* you
-  // run a test suite
-  return 0;
+int init_suite(void)
+{
+    return 0;
 }
 
-int clean_suite(void) {
-  // Change this function if you want to do something *after* you
-  // run a test suite
-  return 0;
+int clean_suite(void)
+{
+    return 0;
 }
 
-// These are example test functions. You should replace them with
-// functions of your own.
-void test1(void) {
-  CU_ASSERT(42);
+void test_create_destroy_database(void)
+{
+    database_t *db = create_database();
+    CU_ASSERT_PTR_NOT_NULL(db);
+    // destroy_database(db);
 }
 
-void test2(void) {
-  CU_ASSERT_EQUAL(1 + 1, 2);
+void test_add_merch(void)
+{
+    database_t *db = create_database();
+
+    CU_ASSERT_TRUE(backend_add_merch_execute("Apple", "Red fruit", 10, db));
+
+    CU_ASSERT_FALSE(backend_add_merch_execute("Apple", "Different desc", 20, db));
+
+    CU_ASSERT_TRUE(backend_add_merch_execute("Banana", "Yellow fruit", 15, db));
+
+    // destroy_database(db);
 }
 
-int main() {
-  // First we try to set up CUnit, and exit if we fail
-  if (CU_initialize_registry() != CUE_SUCCESS)
-    return CU_get_error();
+void test_list_merch(void)
+{
+    database_t *db = create_database();
+    backend_add_merch_execute("Apple", "Desc", 10, db);
+    backend_add_merch_execute("Banana", "Desc", 15, db);
 
-  // We then create an empty test suite and specify the name and
-  // the init and cleanup functions
-  CU_pSuite my_test_suite = CU_add_suite("My awesome test suite", init_suite, clean_suite);
-  if (my_test_suite == NULL) {
-      // If the test suite could not be added, tear down CUnit and exit
-      CU_cleanup_registry();
-      return CU_get_error();
-  }
+    ioopm_list_t *list = backend_list_merch_execute(db);
+    CU_ASSERT_PTR_NOT_NULL(list);
+    CU_ASSERT_EQUAL(ioopm_list_size(list), 2);
 
-  // This is where we add the test functions to our test suite.
-  // For each call to CU_add_test we specify the test suite, the
-  // name or description of the test, and the function that runs
-  // the test in question. If you want to add another test, just
-  // copy a line below and change the information
-  if (
-    (CU_add_test(my_test_suite, "A simple test", test1) == NULL) ||
-    (CU_add_test(my_test_suite, "Basic arithmetics", test2) == NULL) ||
-    0
-  )
+    ioopm_list_destroy(list);
+    // destroy_database(db);
+}
+
+void test_replenish(void)
+{
+    database_t *db = create_database();
+    backend_add_merch_execute("Apple", "Fruit", 10, db);
+    backend_add_merch_execute("Orange", "Fruit", 12, db);
+
+    CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "12A", 10));  // Wrong shelfname
+    CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "A", 10));    // Wrong shelfname
+    CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "A01", -5));   // Negative number
+    CU_ASSERT_FALSE(backend_replenish_execute(db, "NonExistent", "A01", 10)); // Item doesn't exist
+
+    CU_ASSERT_TRUE(backend_replenish_execute(db, "Apple", "A01", 10));
+
+    CU_ASSERT_TRUE(backend_replenish_execute(db, "Apple", "A01", 5));
+
+    CU_ASSERT_FALSE(backend_replenish_execute(db, "Orange", "A01", 8));
+
+    CU_ASSERT_TRUE(backend_replenish_execute(db, "Orange", "B01", 8));
+
+    // destroy_database(db);
+}
+
+void test_remove_merch(void)
+{
+    database_t *db = create_database();
+    backend_add_merch_execute("Apple", "Fruit", 10, db);
+    backend_replenish_execute(db, "Apple", "A01", 20);
+
+    CU_ASSERT_TRUE(backend_remove_merch_execute("Apple", db));
+
+    CU_ASSERT_FALSE(backend_remove_merch_execute("Apple", db));
+
+    backend_add_merch_execute("Pear", "Fruit", 14, db);
+    CU_ASSERT_TRUE(backend_replenish_execute(db, "Pear", "A01", 15));
+
+    // destroy_database(db);
+}
+
+void test_edit_merch(void)
+{
+    database_t *db = create_database();
+    backend_add_merch_execute("Apple", "Fruit", 10, db);
+    backend_add_merch_execute("Orange", "Fruit", 12, db);
+    backend_replenish_execute(db, "Apple", "A01", 20);
+
+    CU_ASSERT_TRUE(backend_edit_merch_execute(db, "Apple", "Apple", "Green fruit", 12));
+
+    CU_ASSERT_FALSE(backend_edit_merch_execute(db, "Apple", "Orange", "Desc", 10));
+
+    CU_ASSERT_TRUE(backend_edit_merch_execute(db, "Apple", "GreenApple", "Green fruit", 12));
+
+    CU_ASSERT_FALSE(backend_remove_merch_execute("Apple", db));
+
+    CU_ASSERT_TRUE(backend_replenish_execute(db, "GreenApple", "A01", 5));
+
+    // destroy_database(db);
+}
+
+int main(void)
+{
+    if (CUE_SUCCESS != CU_initialize_registry())
     {
-      // If adding any of the tests fails, we tear down CUnit and exit
-      CU_cleanup_registry();
-      return CU_get_error();
+        return CU_get_error();
     }
 
-  // Set the running mode. Use CU_BRM_VERBOSE for maximum output.
-  // Use CU_BRM_NORMAL to only print errors and a summary
-  CU_basic_set_mode(CU_BRM_NORMAL);
+    CU_pSuite pSuite = CU_add_suite("Database Backend Suite", init_suite, clean_suite);
+    if (NULL == pSuite)
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
 
-  // This is where the tests are actually run!
-  CU_basic_run_tests();
+    if (
+        (NULL == CU_add_test(pSuite, "Create and Destroy database", test_create_destroy_database)) ||
+        (NULL == CU_add_test(pSuite, "Add Merchandise", test_add_merch)) ||
+        (NULL == CU_add_test(pSuite, "List Merchandise", test_list_merch)) ||
+        (NULL == CU_add_test(pSuite, "Replenish Stock", test_replenish)) ||
+        (NULL == CU_add_test(pSuite, "Remove Merchandise", test_remove_merch)) ||
+        (NULL == CU_add_test(pSuite, "Edit Merchandise", test_edit_merch))
+    )
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
 
-  // Tear down CUnit before exiting
-  CU_cleanup_registry();
-  return CU_get_error();
+    CU_basic_set_mode(CU_BRM_VERBOSE);
+    CU_basic_run_tests();
+    CU_cleanup_registry();
+    return CU_get_error();
 }
