@@ -1,8 +1,6 @@
 #pragma once
-#include "./libs/inlupp1/linked_list.h"
-#include "./libs/inlupp1/hash_table.h"
-
-
+#include "../inlupp1/linked_list.h"
+#include "../inlupp1/hash_table.h"
 
 /*
 merch
@@ -28,43 +26,13 @@ Shopping cart
 
 */
 
-struct database {
-    ioopm_hash_table_t *merch_ht;
-    ioopm_hash_table_t *location_ht;
-};
-
 typedef struct database database_t;
 
-struct merch {
-    char *name;
-    char *desc;
-    int price;
-    ioopm_list_t *stock; // should contain elem_t with void pointer to a location
-    // needs to remove pointers to self before free
-};
 typedef struct merch merch_t;
 
-struct location {
-    merch_t *merch;
-    int amount;
-    // needs to remove pointers to self before free
-};
 typedef struct location location_t;
 
-struct cart_entry {
-    merch_t *merch;
-    int amount;
-};
-typedef struct cart_entry cart_entry_t;
-
-struct cart {
-    ioopm_list_t *cart_items; // should contain pointers to cart_entry
-};
-typedef struct cart cart_t;
-
-
-
-
+database_t *create_database(void);
 
 /*
 This adds a new merch to the warehouse with a name (string), description (string), and price (integer).
@@ -72,16 +40,13 @@ A newly added merch is not in stock.
 Adding a new merch with the same name as an existing merch is not allowed.
 The action code shall be "A". The action shall read the name, description and price for the merch.
 */
-void backend_add_merch_execute(char *location_name, char *name, char *desc, int price, database_t *db);
-
+bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db);
 
 /*
 This should list all items in the store. Items should preferably (soft requirement) be printed in alphabetical order on their names. Because there may be more things in the database than might fit on a screen, items should be printed 20 at a time, and the user is asked to continue listing (if possible) or return to the main menu.
 The action code shall be "L". The question to continue listing shall return to the main menu if the input begins with "N" or "n". For all other input (including an empty line) the listing shall continue.
 */
-void backend_list_merch_execute(database_t *db);
-
-
+ioopm_list_t *backend_list_merch_execute(database_t *database);
 
 /*
 Removes an item completely from the warehouse, including all its stock.
@@ -89,14 +54,13 @@ The action code shall be "D". The action shall read the name of the merch and a 
 */
 bool backend_remove_merch_execute(char *name, database_t *db);
 
-
 /*
 Allows changing the name, description and price of a merch. Note that this does not affect its stock.
 Changing the name of a merch to the name of an existing merch is not allowed..
 Note that changing the name may mean changing the key unless you use a unique id for each merch.
 The action code shall be "E". The action shall read the old name of the merch, the new name, the new description, the new price for the merch and a confirmation string. The merch shall be updated only if the confirmation string begins with "Y" or "y".
 */
-bool backend_edit_merch_execute(char *old_name, char *new_name, char *new_desc, int new_price, database_t *db);
+bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_name, char *new_desc, int new_price);
 
 /*
 List all the storage locations for a particular merch, along with the quantities stored on each location. Storage locations should preferably be listed in alphabetical order (e.g., A20 before B01 and C01 before C10).
@@ -113,7 +77,7 @@ A storage location stocks items of one (type of) merch, never more.
 For simplicity, there is no limit to the amount of storage locations nor is there a limit on the number of items a location can hold.
 The action code shall be "P". The action shall read the id of the storage location, the name of the merch and the number of items to add.
 */
-bool backend_replenish_execute(int id, char *merch_name, int items_amount, database_t *db);
+bool backend_replenish_execute(database_t *database, char *merch, char *shelf, int add);
 
 /*
 Creates a new shopping cart in the system which is empty.

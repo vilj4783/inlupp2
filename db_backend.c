@@ -1,10 +1,3 @@
-#include "db_backend.h"
-#include <stdlib.h>
-
-// NOTE: use void pointers in elem_t to used structs
-
-
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -41,12 +34,12 @@ struct merch
     int price;
     ioopm_list_t *locations;
 };
-
+//Ta bort
 bool string_key_eq(elem_t k1, elem_t k2)
 {
   return strcmp(k1.s, k2.s) == 0; // if elem_t has field char *string
 }
-
+//Ta bort
 size_t string_knr_hash(elem_t key)
 {
   const char *str = key.s;
@@ -78,7 +71,7 @@ void destroy_merch(merch_t *merch)
 
     free(merch->name);
     free(merch->desc);
-
+    //Iterator istället
     ioopm_list_t *locations = merch->locations;
     if (locations != NULL)
     {
@@ -96,6 +89,7 @@ void destroy_merch(merch_t *merch)
 
 database_t *create_database(void)
 {
+    //Kör Calloc istället 
     database_t *new_database = malloc(sizeof(database_t));
     if(new_database == NULL)
     {
