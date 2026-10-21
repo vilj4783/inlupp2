@@ -4,10 +4,10 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
-#include "../inlupp1/hash_table.h"
-#include "../inlupp1/hash_table_iterator.h"
-#include "../inlupp1/linked_list.h"
-#include "../inlupp1/list_iterator.h"
+#include "./libs/inlupp1/hash_table.h"
+#include "./libs/inlupp1/hash_table_iterator.h"
+#include "./libs/inlupp1/linked_list.h"
+#include "./libs/inlupp1/linked_list_iterator.h"
 
 typedef struct database database_t;
 
@@ -15,6 +15,7 @@ struct database
 {
     ioopm_hash_table_t *merch_ht;
     ioopm_hash_table_t *shelf_ht;
+    ioopm_hash_table_t *cart_ht;
 };
 
 typedef struct shelf shelf_t;
@@ -33,9 +34,38 @@ struct merch
     char *desc;
     int price;
     ioopm_list_t *locations;
+    ioopm_list_t *carts; // should contain elem_t(s) with a pointer to the cart and the carts id number
 };
+
+struct cart_entry
+{
+    int merch_amount;
+    merch_t *merch;
+};
+
+typedef struct cart_entry cart_entry_t;
+
+struct cart
+{
+    int cart_id;
+    ioopm_list_t *entries;
+};
+
+typedef struct cart cart_t;
+
+size_t id_hash(elem_t id)
+{
+    return id.i;
+}
+
+bool id_key_eq(elem_t k1, elem_t k2)
+{
+    return k1.i == k2.i;
+}
+
 //Ta bort
-bool string_key_eq(elem_t k1, elem_t k2)
+/*
+bool string_equal(elem_t k1, elem_t k2)
 {
   return strcmp(k1.s, k2.s) == 0; // if elem_t has field char *string
 }
@@ -51,6 +81,7 @@ size_t string_knr_hash(elem_t key)
   }
   return result;
 }
+*/
 
 static void destroy_shelf(shelf_t *shelf)
 {
@@ -60,6 +91,83 @@ static void destroy_shelf(shelf_t *shelf)
     }
     free(shelf->shelf_name);
     free(shelf);
+}
+
+static void destroy_cart_entry(cart_entry_t *cart_entry, size_t cart_id)
+{
+    ioopm_list_iterator_t *cart_id_iterator = ioopm_list_iterator_create(cart_entry->merch->carts);
+
+    while (!ioopm_list_iterator_at_end(cart_id_iterator))
+    {
+        if (((cart_t *)ioopm_list_iterator_current(cart_id_iterator).p)->cart_id == cart_id)
+        {
+            ioopm_list_iterator_remove(cart_id_iterator);
+            break; // done with loop, can exit function
+        }
+        ioopm_list_iterator_advance(cart_id_iterator);
+    }
+
+    ioopm_list_iterator_destroy(cart_id_iterator);
+    free(cart_entry);
+}
+
+static void destroy_cart(cart_t *cart)
+{
+    ioopm_list_iterator_t *iter = ioopm_list_iterator_create(cart->entries);
+
+    while(!ioopm_list_iterator_at_end(iter))
+    {
+        destroy_cart_entry(ioopm_list_iterator_current(iter).p, cart->cart_id);
+        ioopm_list_iterator_advance(iter); 
+    }
+
+    ioopm_list_iterator_destroy(iter);
+    ioopm_list_destroy(cart->entries);
+    free(cart);
+}
+
+static bool merch_cart_entry_destroy(merch_t *merch, cart_t *cart) // removes a entry of a merch in a particular cart
+{
+    // ioopm_hash_table_lookup(db->cart_ht, key, cart)
+    if (cart != NULL)
+    {
+        
+        ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
+        while(!ioopm_list_iterator_at_end(entry_iterator)) // look for the entry with the offending merch link
+        {
+            cart_entry_t *entry = ioopm_list_iterator_current(entry_iterator).p;
+            if (entry->merch == merch) // TODO: could need to verify by dereferencing and comparing Identifiers
+            {
+                // destroys cart entry and removes it from list
+                destroy_cart_entry(entry, cart->cart_id);
+                ioopm_list_iterator_remove(entry_iterator);
+            }
+            ioopm_list_iterator_advance(entry_iterator);
+        }
+        ioopm_list_iterator_destroy(entry_iterator);
+        return true;
+    }
+    return false;
+}
+
+
+static bool merch_cart_destroy(merch_t *merch) // removes entries of a merch in all carts
+{
+    if(!ioopm_list_is_empty(merch->carts))
+    {
+        ioopm_list_iterator_t *cart_pointer_iterator = ioopm_list_iterator_create(merch->carts);
+
+        while(!ioopm_list_iterator_at_end(cart_pointer_iterator)) // through all cart ids in the merch struct (list)
+        {
+
+            merch_cart_entry_destroy(merch, ioopm_list_iterator_current(cart_pointer_iterator).p);   
+            ioopm_list_iterator_advance(cart_pointer_iterator);
+        }
+
+        ioopm_list_iterator_destroy(cart_pointer_iterator);
+        return true;
+    }
+    return false;
 }
 
 void destroy_merch(merch_t *merch)
@@ -84,6 +192,7 @@ void destroy_merch(merch_t *merch)
         }
         ioopm_list_destroy(locations);
     }
+    merch_cart_destroy(merch); // destroys all pointers to this merch from carts
     free(merch);
 }
 
@@ -96,8 +205,9 @@ database_t *create_database(void)
         return NULL;
     }
 
-    new_database->merch_ht = ioopm_hash_table_create(string_knr_hash, string_key_eq);
-    new_database->shelf_ht = ioopm_hash_table_create(string_knr_hash, string_key_eq);
+    new_database->merch_ht = ioopm_hash_table_create(string_knr_hash, string_equal);
+    new_database->shelf_ht = ioopm_hash_table_create(string_knr_hash, string_equal);
+    new_database->cart_ht = ioopm_hash_table_create(id_hash, id_key_eq);
 
     /*if(new_database->merch_ht == NULL || new_database->shelf_ht == NULL)
     {
@@ -119,6 +229,7 @@ static merch_t *create_merch(char *name, char *desc, int price)
     new_merch->desc = strdup(desc);
     new_merch->price = price;
     new_merch->locations = ioopm_list_create();
+    new_merch->carts = ioopm_list_create();
 
     if(new_merch->name == NULL || new_merch->desc == NULL || new_merch->locations == NULL)
     {
@@ -127,6 +238,29 @@ static merch_t *create_merch(char *name, char *desc, int price)
     }
 
     return new_merch;
+}
+
+static cart_t *create_cart(size_t id)
+{
+    cart_t *cart = calloc(1, sizeof(cart_t));
+
+    cart->cart_id = id; // creator keeps track of this via ht size
+    cart->entries = ioopm_list_create();
+
+    return cart;
+}
+
+static cart_entry_t *create_cart_entry(merch_t *merch, size_t merch_amount, cart_t *cart)
+{
+    cart_entry_t *cart_entry = calloc(1, sizeof(cart_entry_t));
+    cart_entry->merch = merch;
+    cart_entry->merch_amount = merch_amount;
+
+
+    ioopm_list_append(cart->entries, ptr_elem(cart_entry));
+    ioopm_list_append(merch->carts, ptr_elem(cart));
+
+    return cart_entry;
 }
 
 static ioopm_list_t *create_shelf(ioopm_list_t *locations, char *shelf_name, int quantity)
@@ -198,7 +332,7 @@ bool backend_add_merch_execute(char *name, char *desc, int price, database_t *da
 
     ioopm_hash_table_insert(merch_ht, key, value);
     return true;
-}
+} // note to self indirect link from merch_t to carts via ID
 
 
 //Not in alphabetic order yet
@@ -393,31 +527,107 @@ bool backend_replenish_execute(database_t *database, char *merch, char *shelf, i
 void backend_create_cart_execute(database_t *db)
 {
     // TODO: implement
+    size_t cart_amount = ioopm_hash_table_size(db->cart_ht);
+    ioopm_hash_table_insert(db->cart_ht, int_elem(cart_amount), ptr_elem(create_cart(cart_amount)));
 }
 
 
-bool backend_remove_cart_execute(int id, database_t *db)
+bool backend_remove_cart_execute(size_t id, database_t *db)
 {
     // TODO: implement
-    return false; // CHEAT:
+    elem_t *cart_elem;
+    bool success = ioopm_hash_table_remove(db->cart_ht, int_elem(id), cart_elem);
+    destroy_cart(cart_elem->p);
+    return success;
 }
 
-bool backend_add_to_cart_execute(int id, char *name, int item_amount, database_t *db)
+bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db)
 {
     // TODO: implement
-    return false; // CHEAT: 
+    elem_t *merch_elem;
+    ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem);
+    
+    ioopm_list_iterator_t *cart_iterator = ioopm_list_iterator_create(( (merch_t *)merch_elem->p)->carts);
+
+    cart_t *cart;
+    while (!ioopm_list_iterator_at_end(cart_iterator))
+    {
+        cart = (cart_t *) ioopm_list_iterator_current(cart_iterator).p;
+        if (cart->cart_id == id) break; // TODO: maybe break this loop out as a function returning a cart!
+        ioopm_list_iterator_advance(cart_iterator);
+    }
+
+    // TODO: add a validator to check if that entry already exists!!!!!! 
+    // TODO: if already exists return false BUT change amount!!!
+
+    ioopm_list_iterator_remove(cart_iterator);
+
+    create_cart_entry(merch_elem->p, item_amount, cart);
+    return true;
 }
 
-bool backend_remove_from_cart_execute(int id, char *name, int item_amount, database_t *db)
+bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, database_t *db)
 {
     // TODO: implement (should be fairly simple)
+    elem_t *merch_elem;
+    elem_t *cart_elem;
+
+    ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem);
+    ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem);
+
+    cart_t *cart = cart_elem->p;
+    merch_t *merch = merch_elem->p;
+
+    ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
+
+    cart_entry_t *entry;
+    while (!ioopm_list_iterator_at_end(entry_iterator))
+    {
+        entry = ioopm_list_iterator_current(entry_iterator).p;
+        if (entry->merch == merch) // FIXME: once again identifer comparison might be needed
+        {
+            if (entry->merch_amount > item_amount)
+            {
+                entry->merch_amount = entry->merch_amount - item_amount;
+            } else
+            {
+                destroy_cart_entry(entry, id);
+                ioopm_list_iterator_destroy;(entry_iterator);
+            }
+        };
+        ioopm_list_iterator_advance(entry_iterator);
+    }
+
+    ioopm_list_iterator_destroy(entry_iterator);
+
+
     return false; // CHEAT:
 }
 
-int backend_calculate_cost_execute(int id, database_t *db)
+int backend_calculate_cost_execute(size_t id, database_t *db)
 {
-    // TODO: implement, (sum price for all entries in list)
-    return 0;
+    
+
+    elem_t *cart_elem; 
+    ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem);
+    cart_t *cart = cart_elem->p;
+
+
+    ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
+    cart_entry_t *entry;
+    int sum;
+
+    while (!ioopm_list_iterator_at_end(entry_iterator))
+    {
+        entry = ioopm_list_iterator_current(entry_iterator).p;
+        sum += entry->merch_amount * entry->merch->price;
+
+        ioopm_list_iterator_advance(entry_iterator);
+    }
+
+    ioopm_list_iterator_destroy(entry_iterator);
+    return sum;
+
 }
 
 bool backend_undo_execute(database_t *db)
