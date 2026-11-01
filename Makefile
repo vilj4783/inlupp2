@@ -1,7 +1,7 @@
 
 # compilation
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic
+CFLAGS = -Wall -Wextra -pedantic -g
 GDBFLAGS = -g $(CFLAGS)
 GCOVFLAGS = -O0 --coverage
 CUNIT_LINK = -lcunit

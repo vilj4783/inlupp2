@@ -33,8 +33,9 @@ struct merch
     char *name;
     char *desc;
     int price;
+    size_t unclaimed_stock;
     ioopm_list_t *locations;
-    ioopm_list_t *carts; // should contain elem_t(s) with a pointer to the cart and the carts id number
+    ioopm_list_t *carts; // should contain elem_t(s) with a pointer to the cart
 };
 
 struct cart_entry
@@ -230,6 +231,7 @@ static merch_t *create_merch(char *name, char *desc, int price)
     new_merch->price = price;
     new_merch->locations = ioopm_list_create();
     new_merch->carts = ioopm_list_create();
+    new_merch->unclaimed_stock = 0;
 
     if(new_merch->name == NULL || new_merch->desc == NULL || new_merch->locations == NULL)
     {
@@ -238,6 +240,28 @@ static merch_t *create_merch(char *name, char *desc, int price)
     }
 
     return new_merch;
+}
+
+static bool is_in_cart(merch_t *merch, cart_t *cart)
+{
+    if(!ioopm_list_is_empty(merch->carts))
+    {
+        ioopm_list_iterator_t *cart_pointer_iterator = ioopm_list_iterator_create(merch->carts);
+
+        while(!ioopm_list_iterator_at_end(cart_pointer_iterator)) // through all cart ids in the merch struct (list)
+        {
+
+            if(ioopm_list_iterator_current(cart_pointer_iterator).p == cart)   
+            {
+                ioopm_list_iterator_destroy(cart_pointer_iterator);
+                return true;
+            }
+            ioopm_list_iterator_advance(cart_pointer_iterator);
+        }
+
+        ioopm_list_iterator_destroy(cart_pointer_iterator);
+        return false;
+    }
 }
 
 static cart_t *create_cart(size_t id)
@@ -512,12 +536,15 @@ bool backend_replenish_execute(database_t *database, char *merch, char *shelf, i
         // Merch exist on current shelf, add to quantity
         shelf_t *existing_shelf = find_shelf(target_merch->locations, shelf);
         existing_shelf->quantity += add;
+        target_merch->unclaimed_stock += add;
+
         return true;
     }
     else
     {
         // If shelf doesn't exist, create a new shelf
         create_shelf(target_merch->locations, shelf, add);
+        target_merch->unclaimed_stock += add;
         // Insert shelf to shelf_ht
         ioopm_hash_table_insert(shelf_ht, shelf_name, string_elem(strdup(merch))); 
         return true;
@@ -555,22 +582,46 @@ bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, databas
     elem_t *cart_elem = &ptr_elem(NULL); // placeholder ptr_elem
     
     if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem) &&
-       ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem))
+       ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem) &&
+       ((merch_t *)merch_elem->p)->unclaimed_stock >= item_amount)
     {
+        merch_t *merch = merch_elem->p;
+        cart_t *cart = cart_elem->p;
+
+        merch->unclaimed_stock -= item_amount;
 
 
-    // TODO: add a validator to check if that entry already exists!!!!!! 
-    // TODO: if already exists return false BUT change amount!!!
+        // TODO: add a validator to check if that entry already exists!!!!!! 
+        // TODO: if already exists return false BUT change amount!!!
 
-    // TODO: reduce the quantity of that merch on some shelf
-    // TODO: store shelf(s) taken from in cart_entry
-    // with a linked list of structs with shelf and amount taken
+        // TODO: store shelf(s) taken from in cart_entry
+        // with a linked list of structs with shelf and amount taken
 
-    
-    create_cart_entry(merch_elem->p, item_amount, cart_elem->p);
-    return true;
+        if(is_in_cart(merch, cart)) // TOOD extract this function
+        {
+            ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
+            while(!ioopm_list_iterator_at_end(entry_iterator)) // look for the entry with the relevant merch link
+            {
+                cart_entry_t *entry = ioopm_list_iterator_current(entry_iterator).p;
+                if (entry->merch == merch) // compares addresses
+                {
+                    // destroys cart entry and removes it from list
+                    entry->merch_amount += item_amount;
+                }
+                ioopm_list_iterator_advance(entry_iterator);
+            }
+            ioopm_list_iterator_destroy(entry_iterator);
+            return true;
+
+        } else
+        {
+            create_cart_entry(merch, item_amount, cart);
+            
+            return true;
+        }
+        return false;
+
     }
-    return false;
 
 }
 
@@ -596,13 +647,16 @@ bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, da
         {
             if (entry->merch_amount > item_amount)
             {
-                entry->merch_amount = entry->merch_amount - item_amount;
+                entry->merch_amount -= item_amount;
+                merch->unclaimed_stock += item_amount;
+
             } else
             {
                 destroy_cart_entry(entry, id);
+                merch->unclaimed_stock += entry->merch_amount;
                 ioopm_list_iterator_destroy;(entry_iterator);
             }
-        };
+        }
         ioopm_list_iterator_advance(entry_iterator);
     }
 

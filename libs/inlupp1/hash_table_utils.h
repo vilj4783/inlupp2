@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-#define No_Buckets 499
+#define No_Buckets 4
 
 typedef struct entry entry_t;
 
