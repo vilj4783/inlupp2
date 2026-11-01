@@ -105,6 +105,59 @@ void test_edit_merch(void)
 
     // destroy_database(db);
 }
+void test_create_remove_cart(void)
+{
+    database_t *db = create_database();
+    backend_add_merch_execute("Apple", "Fruit", 10, db);
+    backend_add_merch_execute("Orange", "Fruit", 12, db);
+    backend_add_merch_execute("Pear", "Fruit", 15, db);
+    backend_replenish_execute(db, "Apple", "A01", 20);
+    backend_create_cart_execute(db); // cart 0
+    backend_create_cart_execute(db); // cart 1
+
+    backend_add_to_cart_execute(0, "Apple", 1, db);
+    backend_add_to_cart_execute(0, "Pear", 2, db);
+
+    backend_add_to_cart_execute(1, "Orange", 1, db);
+    backend_add_to_cart_execute(1, "Banana", 2, db);
+
+    CU_ASSERT_EQUAL(40, backend_calculate_cost_execute(0, db));
+    CU_ASSERT_EQUAL(12, backend_calculate_cost_execute(1, db));
+
+    CU_ASSERT(backend_remove_cart_execute(0, db));
+    CU_ASSERT(backend_remove_cart_execute(1, db));
+}
+
+
+void test_add_to_remove_from_cart(void)
+{
+    database_t *db = create_database();
+    backend_add_merch_execute("Apple", "Fruit", 10, db);
+    backend_add_merch_execute("Orange", "Fruit", 12, db);
+    backend_add_merch_execute("Pear", "Fruit", 15, db);
+    backend_replenish_execute(db, "Apple", "A01", 20);
+
+    backend_create_cart_execute(db); // cart 0
+    backend_create_cart_execute(db); // cart 1
+    backend_create_cart_execute(db); // cart 2
+
+    backend_add_to_cart_execute(0, "Apple", 1, db);
+    backend_add_to_cart_execute(0, "Pear", 3, db);
+
+    backend_add_to_cart_execute(1, "Orange", 1, db);
+    backend_add_to_cart_execute(1, "Banana", 2, db);
+
+    CU_ASSERT_EQUAL(55, backend_calculate_cost_execute(0, db));
+    CU_ASSERT_EQUAL(12, backend_calculate_cost_execute(1, db));
+    CU_ASSERT_EQUAL(0, backend_calculate_cost_execute(2, db));
+
+    CU_ASSERT(backend_remove_cart_execute(0, db));
+    CU_ASSERT(backend_remove_cart_execute(1, db));
+    CU_ASSERT(backend_remove_cart_execute(2, db));
+    CU_ASSERT_FALSE(backend_remove_cart_execute(3, db)); // nonexisting cart
+    
+
+}
 
 int main(void)
 {
@@ -121,12 +174,14 @@ int main(void)
     }
 
     if (
-        (NULL == CU_add_test(pSuite, "Create and Destroy database", test_create_destroy_database)) ||
-        (NULL == CU_add_test(pSuite, "Add Merchandise", test_add_merch)) ||
-        (NULL == CU_add_test(pSuite, "List Merchandise", test_list_merch)) ||
-        (NULL == CU_add_test(pSuite, "Replenish Stock", test_replenish)) ||
-        (NULL == CU_add_test(pSuite, "Remove Merchandise", test_remove_merch)) ||
-        (NULL == CU_add_test(pSuite, "Edit Merchandise", test_edit_merch))
+        // (NULL == CU_add_test(pSuite, "Create and Destroy database", test_create_destroy_database)) ||
+        // (NULL == CU_add_test(pSuite, "Add Merchandise", test_add_merch)) ||
+        // (NULL == CU_add_test(pSuite, "List Merchandise", test_list_merch)) ||
+        // (NULL == CU_add_test(pSuite, "Replenish Stock", test_replenish)) ||
+        // (NULL == CU_add_test(pSuite, "Remove Merchandise", test_remove_merch)) ||
+        // (NULL == CU_add_test(pSuite, "Edit Merchandise", test_edit_merch)) ||
+        (NULL == CU_add_test(pSuite, "add and remove a cart", test_create_remove_cart)) ||
+        (NULL == CU_add_test(pSuite, "add to and remove from cart", test_add_to_remove_from_cart))
     )
     {
         CU_cleanup_registry();

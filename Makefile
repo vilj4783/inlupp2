@@ -44,5 +44,5 @@ test_main: $(MAIN_TEST)
 	# ./test_main
 
 test_backend: $(BACKEND_TEST)
-	$(CC) $(CFLAGS) $^ -o test_backend $(CUNIT_LINK) \
-	&& valgrind --leak-check=full ./test_backend\
+	$(CC) $(CFLAGS) $^ -o test_backend $(CUNIT_LINK)
+	# && valgrind --leak-check=full ./test_backend

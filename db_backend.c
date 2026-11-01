@@ -60,7 +60,7 @@ size_t id_hash(elem_t id)
 
 bool id_key_eq(elem_t k1, elem_t k2)
 {
-    return k1.i == k2.i;
+    return k1.i != k2.i;
 }
 
 //Ta bort
@@ -133,10 +133,10 @@ static bool merch_cart_entry_destroy(merch_t *merch, cart_t *cart) // removes a 
     {
         
         ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
-        while(!ioopm_list_iterator_at_end(entry_iterator)) // look for the entry with the offending merch link
+        while(!ioopm_list_iterator_at_end(entry_iterator)) // look for the entry with the relevant merch link
         {
             cart_entry_t *entry = ioopm_list_iterator_current(entry_iterator).p;
-            if (entry->merch == merch) // TODO: could need to verify by dereferencing and comparing Identifiers
+            if (entry->merch == merch) // compares addresses
             {
                 // destroys cart entry and removes it from list
                 destroy_cart_entry(entry, cart->cart_id);
@@ -500,11 +500,11 @@ bool backend_replenish_execute(database_t *database, char *merch, char *shelf, i
     }
     merch_t *target_merch = merch_elem.p;
 
-    elem_t current;
-    if (ioopm_hash_table_lookup(shelf_ht, shelf_name, &current))
+    elem_t *current;
+    if (ioopm_hash_table_lookup(shelf_ht, shelf_name, current))
     {
         //Checks if another merch on the shelf
-        if (strcmp(current.s, merch) != 0) 
+        if (strcmp(current->s, merch) != 0) 
         {
             return false; // Shelf is connected with another merch!
         }
@@ -528,51 +528,59 @@ void backend_create_cart_execute(database_t *db)
 {
     // TODO: implement
     size_t cart_amount = ioopm_hash_table_size(db->cart_ht);
-    ioopm_hash_table_insert(db->cart_ht, int_elem(cart_amount), ptr_elem(create_cart(cart_amount)));
+    cart_t *cart = create_cart(cart_amount);
+    elem_t key = int_elem(cart_amount);
+    ioopm_hash_table_insert(db->cart_ht, key, ptr_elem(cart));
 }
 
 
 bool backend_remove_cart_execute(size_t id, database_t *db)
 {
-    // TODO: implement
-    elem_t *cart_elem;
-    bool success = ioopm_hash_table_remove(db->cart_ht, int_elem(id), cart_elem);
-    destroy_cart(cart_elem->p);
-    return success;
+    // TODO: restore  cart reserved merch
+    elem_t *cart_elem = &ptr_elem(NULL); // placeholder
+
+    elem_t key = int_elem(id);
+    
+    if(ioopm_hash_table_remove(db->cart_ht, key, cart_elem))
+    {
+        destroy_cart(cart_elem->p);
+        return true;
+    }
+    return false;;
 }
 
 bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db)
 {
-    // TODO: implement
-    elem_t *merch_elem;
-    ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem);
+    elem_t *merch_elem = &string_elem("hello world"); // placeholder string
+    elem_t *cart_elem = &ptr_elem(NULL); // placeholder ptr_elem
     
-    ioopm_list_iterator_t *cart_iterator = ioopm_list_iterator_create(( (merch_t *)merch_elem->p)->carts);
-
-    cart_t *cart;
-    while (!ioopm_list_iterator_at_end(cart_iterator))
+    if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem) &&
+       ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem))
     {
-        cart = (cart_t *) ioopm_list_iterator_current(cart_iterator).p;
-        if (cart->cart_id == id) break; // TODO: maybe break this loop out as a function returning a cart!
-        ioopm_list_iterator_advance(cart_iterator);
-    }
+
 
     // TODO: add a validator to check if that entry already exists!!!!!! 
     // TODO: if already exists return false BUT change amount!!!
 
-    ioopm_list_iterator_remove(cart_iterator);
+    // TODO: reduce the quantity of that merch on some shelf
+    // TODO: store shelf(s) taken from in cart_entry
+    // with a linked list of structs with shelf and amount taken
 
-    create_cart_entry(merch_elem->p, item_amount, cart);
+    
+    create_cart_entry(merch_elem->p, item_amount, cart_elem->p);
     return true;
+    }
+    return false;
+
 }
 
 bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, database_t *db)
 {
-    // TODO: implement (should be fairly simple)
     elem_t *merch_elem;
     elem_t *cart_elem;
-
-    ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem);
+    elem_t key = int_elem(id);
+    
+    ioopm_hash_table_lookup(db->cart_ht, key, cart_elem);
     ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem);
 
     cart_t *cart = cart_elem->p;
@@ -608,14 +616,16 @@ int backend_calculate_cost_execute(size_t id, database_t *db)
 {
     
 
-    elem_t *cart_elem; 
-    ioopm_hash_table_lookup(db->cart_ht, int_elem(id), cart_elem);
+    elem_t *cart_elem;
+    elem_t key = int_elem(id);
+    
+    if (!ioopm_hash_table_lookup(db->cart_ht, key, cart_elem)) return 0;
     cart_t *cart = cart_elem->p;
 
 
     ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
     cart_entry_t *entry;
-    int sum;
+    int sum = 0;
 
     while (!ioopm_list_iterator_at_end(entry_iterator))
     {
