@@ -9,7 +9,7 @@ BINS = test_io test_main test_backend
 
 # lists
 IO_TEST = db_io.o db_io_tests.o utils.o
-MAIN_TEST = db_io.o db_main.o utils.o db_backend_mockup.o
+MAIN_TEST = db_io.o db_main.o utils.o db_backend.o linked_list.o linked_list_iterator.o hash_table.o hash_table_iterator.o
 BACKEND_TEST = db_backend.o  db_backend_tests.o linked_list.o linked_list_iterator.o hash_table.o hash_table_iterator.o
 
 # rules

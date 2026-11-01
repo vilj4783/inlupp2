@@ -368,11 +368,11 @@ ioopm_list_t *backend_list_merch_execute(database_t *database)
 
     while(!ioopm_hash_table_iterator_at_end(it))
     {
-        elem_t merch_name = ioopm_hash_table_iterator_current_key(it);
-        ioopm_list_append(merch_list, merch_name);
+        elem_t merch = ioopm_hash_table_iterator_current_value(it);
+        ioopm_list_append(merch_list, merch);
         ioopm_hash_table_iterator_advance(it);
     }
-    ioopm_hash_table_iterator_destroy(it);
+    ioopm_hash_table_iterator_destroy(it);  
     return merch_list;
 }
 
@@ -551,13 +551,14 @@ bool backend_replenish_execute(database_t *database, char *merch, char *shelf, i
     }
 }
 
-void backend_create_cart_execute(database_t *db)
+int backend_create_cart_execute(database_t *db)
 {
     // TODO: implement
     size_t cart_amount = ioopm_hash_table_size(db->cart_ht);
     cart_t *cart = create_cart(cart_amount);
     elem_t key = int_elem(cart_amount);
     ioopm_hash_table_insert(db->cart_ht, key, ptr_elem(cart));
+    return cart->cart_id;
 }
 
 
@@ -577,7 +578,7 @@ bool backend_remove_cart_execute(size_t id, database_t *db)
 }
 
 bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db)
-{
+{   
     elem_t *merch_elem = &string_elem("hello world"); // placeholder string
     elem_t *cart_elem = &ptr_elem(NULL); // placeholder ptr_elem
     
@@ -590,15 +591,8 @@ bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, databas
 
         merch->unclaimed_stock -= item_amount;
 
-
-        // TODO: add a validator to check if that entry already exists!!!!!! 
-        // TODO: if already exists return false BUT change amount!!!
-
-        // TODO: store shelf(s) taken from in cart_entry
-        // with a linked list of structs with shelf and amount taken
-
-        if(is_in_cart(merch, cart)) // TOOD extract this function
-        {
+        if(is_in_cart(merch, cart))
+        { // TOOD extract this function
             ioopm_list_iterator_t *entry_iterator = ioopm_list_iterator_create(cart->entries);
             while(!ioopm_list_iterator_at_end(entry_iterator)) // look for the entry with the relevant merch link
             {
@@ -708,4 +702,57 @@ void backend_quit_execute(database_t *db)
 void backend_persistence_on_file(database_t *db)
 {
     // TODO: (JSON or similar solution)
+}
+
+char *get_merch_name(merch_t *merch)
+{
+    return merch->name;
+}
+
+char *get_merch_desc(merch_t *merch)
+{
+    return merch->desc;
+}
+
+int get_merch_price(merch_t *merch)
+{
+    return merch->price;
+}
+
+
+
+char *get_location_name(shelf_t *location)
+{
+    return location->shelf_name;
+}
+
+int get_location_quantity(shelf_t *location)
+{
+    return location->quantity;
+}
+
+
+
+ioopm_list_t *backend_show_stock_execute(char *name, database_t *db) {
+    elem_t result;
+    if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), &result))
+    {
+        return result.p;
+    }
+    return NULL;
+}
+
+bool backend_checkout_execute(size_t id, database_t *db)
+{
+    // TODO: restore  cart reserved merch
+    elem_t *cart_elem = &ptr_elem(NULL); // placeholder
+
+    elem_t key = int_elem(id);
+    
+    if(ioopm_hash_table_remove(db->cart_ht, key, cart_elem))
+    {
+        destroy_cart(cart_elem->p);
+        return true;
+    }
+    return false;;
 }

@@ -1,106 +1,118 @@
 #pragma once
 #include "./libs/inlupp1/linked_list.h"
 #include "./libs/inlupp1/hash_table.h"
-#include "db_backend.h"
-#include <stdlib.h>
 
 
 
+typedef struct database database_t;
 
+typedef struct merch merch_t;
 
+typedef struct location location_t;
 
-
-
-
-void backend_add_merch_execute(char *location_name, char *name, char *desc, int price, database_t *db)
-{
-    (void)location_name;
-    (void)name;
-    (void)desc;
-    (void)price;
-    (void)db;
-}
-
-void backend_list_merch_execute(database_t *db)
-{
-    (void)db;
+database_t *create_database(void) {
+    return NULL;
 }
 
 
-bool backend_remove_merch_execute(char *name, database_t *db)
-{
-    (void)name;
-    (void)db;
+ bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db) {
     return true;
 }
 
-bool backend_edit_merch_execute(char *old_name, char *new_name, char *new_desc, int new_price, database_t *db)
-{
-    (void)old_name;
-    (void)new_name;
-    (void)new_desc;
-    (void)new_price;
-    (void)db;
-    return true;
-}
-bool backend_show_stock_execute(char *name, database_t *db)
-{
-    (void)name;
-    (void)db;
-    return true;
-}
-bool backend_replenish_execute(int id, char *merch_name, int items_amount, database_t *db)
-{
-    (void)id;
-    (void)merch_name;
-    (void)items_amount;
-    (void)db;
-    return true;
-}
-void backend_create_cart_execute(database_t *db)
-{
-    (void)db;
+
+ioopm_list_t *backend_list_merch_execute(database_t *database) {
+    return NULL;
 }
 
-bool backend_remove_cart_execute(int id, database_t *db)
-{
-    (void)id;
-    (void)db;
-    return true;
-}
-bool backend_add_to_cart_execute(int id, char *name, int item_amount, database_t *db)
-{
-    (void)id;
-    (void)name;
-    (void)item_amount;
-    (void)db;
-    return true;
-}
-bool backend_remove_from_cart_execute(int id, char *name, int item_amount, database_t *db)
-{
-    (void)id;
-    (void)name;
-    (void)item_amount;
-    (void)db;
+
+ bool backend_remove_merch_execute(char *name, database_t *db) {
     return true;
 }
 
-int backend_calculate_cost_execute(int id, database_t *db)
-{
-    (void)id;
-    (void)db;
-    return -100;
-}
-bool backend_undo_execute(database_t *db)
-{
-    (void)db;
+
+ bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_name, char *new_desc, int new_price) {
     return true;
 }
-void backend_quit_execute(database_t *db)
-{
-    (void)db;
+
+
+ bool backend_show_stock_execute(char *name, database_t *db) {
+    return true;
 }
-void backend_persistence_on_file(database_t *db)
+
+
+ bool backend_replenish_execute(database_t *database, char *merch, char *shelf, int add) {
+    return true;
+}
+
+
+int backend_create_cart_execute(database_t *db) {
+    return 1;
+}
+
+
+
+ bool backend_remove_cart_execute(size_t id, database_t *db) {
+    return true;
+}
+
+
+ bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db) {
+    return true;
+}
+
+
+ bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, database_t *db) {
+    return true;
+}
+
+
+int backend_calculate_cost_execute(size_t id, database_t *db) {
+    return 1;
+}
+
+
+ bool backend_undo_execute(database_t *db) {
+    return true;
+}
+
+
+void backend_quit_execute(database_t *db) {
+
+}
+
+
+void backend_persistence_on_file(database_t *db) {
+
+}
+
+bool backend_checkout_execute(size_t id, database_t *db)
 {
-    (void)db;
+    return true;
+}
+
+char *get_merch_name(merch_t *merch)
+{
+    return merch->name;
+}
+
+char *get_merch_desc(merch_t *merch)
+{
+    return merch->desc;
+}
+
+int get_merch_price(merch_t *merch)
+{
+    return merch->price;
+}
+
+
+
+char *get_location_name(shelf_t *location)
+{
+    return location->shelf_name;
+}
+
+int get_location_quantity(shelf_t *location)
+{
+    return location->quantity;
 }

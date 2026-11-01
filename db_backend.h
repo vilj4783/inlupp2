@@ -67,7 +67,7 @@ List all the storage locations for a particular merch, along with the quantities
 Names of storage locations follow this format always: one capital letter (A-Z) followed by two digits (0-9).
 The action code shall be "S. The action shall read the name of the merch.
 */
-bool backend_show_stock_execute(char *name, database_t *db);
+ioopm_list_t *backend_show_stock_execute(char *name, database_t *db);
 
 /*
 Increases the stock of a merch by at least one.
@@ -86,7 +86,7 @@ Adding/removing merch to/from a cart does not change the stock for that merch â€
 Shopping carts are identified by a monotonically increasing number, i.e., the number of the iâ€™th shopping cart created is i, regardless of how many shopping carts have been removed.
 The action code shall be "C".
 */
-void backend_create_cart_execute(database_t *db);
+int backend_create_cart_execute(database_t *db);
 
 
 /*
@@ -133,3 +133,13 @@ void backend_quit_execute(database_t *db);
 The program should save its data on disk between runs. There is a discussion about how to implement this further down in this document.
 */
 void backend_persistence_on_file(database_t *db);
+
+
+bool backend_checkout_execute(size_t id, database_t *db);
+
+char *get_merch_name(merch_t *merch);
+char *get_merch_desc(merch_t *merch);
+int get_merch_price(merch_t *merch);
+
+char *get_location_name(location_t *location);
+int get_location_quantity(location_t *location);
