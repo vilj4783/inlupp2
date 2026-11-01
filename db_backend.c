@@ -737,22 +737,61 @@ ioopm_list_t *backend_show_stock_execute(char *name, database_t *db) {
     elem_t result;
     if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), &result))
     {
-        return result.p;
+        return ((merch_t *)result.p)->locations;
     }
     return NULL;
 }
 
 bool backend_checkout_execute(size_t id, database_t *db)
 {
-    // TODO: restore  cart reserved merch
-    elem_t *cart_elem = &ptr_elem(NULL); // placeholder
+    elem_t cart_elem = string_elem("placeholder");
 
-    elem_t key = int_elem(id);
-    
-    if(ioopm_hash_table_remove(db->cart_ht, key, cart_elem))
+    if(ioopm_hash_table_lookup(db->cart_ht, int_elem(id), &cart_elem))
     {
-        destroy_cart(cart_elem->p);
-        return true;
+        cart_t *cart = cart_elem.p;
+
+        ioopm_list_iterator_t *entries = ioopm_list_iterator_create(cart->entries);
+
+        while(!ioopm_list_iterator_at_end(entries))
+        {
+            // create a iterator for locations
+            cart_entry_t *cart_entry = ioopm_list_iterator_current(entries).p;
+            ioopm_list_iterator_t *locations = ioopm_list_iterator_create(cart_entry->merch->locations);
+        
+
+
+            while(!ioopm_list_iterator_at_end(locations) && cart_entry->merch_amount > 0)
+            {
+                shelf_t *location = ioopm_list_iterator_current(locations).p;
+
+                if(location->quantity > cart_entry->merch_amount)
+                {
+                    location->quantity -= cart_entry->merch_amount;
+                    cart_entry->merch_amount = 0;
+                    ioopm_list_iterator_advance(locations);
+                } else
+                {
+                    cart_entry->merch_amount -= location->quantity;
+                    location->quantity = 0;
+                    destroy_shelf(location); // FIXME: destroy location
+                    ioopm_list_iterator_remove(locations);
+                }
+            }
+            ioopm_list_iterator_destroy(locations);
+
+            if(ioopm_list_is_empty(cart_entry->merch->locations))
+            {
+                backend_remove_merch_execute(cart_entry->merch->name, db);
+            }
+            ioopm_list_iterator_advance(entries);
+        }
+
+        ioopm_list_iterator_destroy(entries);
+
+
+        backend_remove_cart_execute(cart->cart_id, db);
+        return  true;
     }
-    return false;;
+
+    return false;
 }

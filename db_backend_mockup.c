@@ -3,10 +3,25 @@
 #include "./libs/inlupp1/hash_table.h"
 
 
+struct database
+{
 
+};
 typedef struct database database_t;
 
+struct merch {
+    char *name;
+    char *desc;
+    int price;
+};
+
 typedef struct merch merch_t;
+
+struct location
+{
+    int quantity;
+    char *shelf_name
+};
 
 typedef struct location location_t;
 
@@ -107,12 +122,12 @@ int get_merch_price(merch_t *merch)
 
 
 
-char *get_location_name(shelf_t *location)
+char *get_location_name(location_t *location)
 {
     return location->shelf_name;
 }
 
-int get_location_quantity(shelf_t *location)
+int get_location_quantity(location_t *location)
 {
     return location->quantity;
 }
