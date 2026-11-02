@@ -1,6 +1,6 @@
 #pragma once
-#include "../inluppar/inlupp1/hash_table.h"
-#include "../inluppar/inlupp1/linked_list.h"
+#include "./libs/inlupp1/linked_list.h"
+#include "./libs/inlupp1/hash_table.h"
 
 /*
 merch
@@ -92,33 +92,33 @@ Adding/removing merch to/from a cart does not change the stock for that merch �
 Shopping carts are identified by a monotonically increasing number, i.e., the number of the i’th shopping cart created is i, regardless of how many shopping carts have been removed.
 The action code shall be "C".
 */
-void backend_create_cart_execute(database_t *db);
+int backend_create_cart_execute(database_t *db);
 
 
 /*
 Removes a shopping cart from the system.
 The action code shall be "R". The action shall read the id of the cart and a confirmation string. The cart shall be removed only if the confirmation string begins with "Y" or "y".
 */
-bool backend_remove_cart_execute(int id, database_t *db);
+bool backend_remove_cart_execute(size_t id, database_t *db);
 
 /*
 Adds some quantity of a merch to a specific shopping cart.
 All possible orders in the system must be fullfillable. For example, we may only have one or more carts with 12 items of a merch X if the total stock of X in the system at least 12. Thus, if all users go to checkout at the same time, they should all succeed.
 The action code shall be "+". The action shall read the id of the cart, the name of the merch and the number of items.
 */
-bool backend_add_to_cart_execute(int id, char *name, int item_amount, database_t *db);
+bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db);
 
 /*
 Removes zero or more items of some merch from a particular cart.
 The action code shall be "-". The action shall read the id of the cart, the name of the merch and the number of items.
 */
-bool backend_remove_from_cart_execute(int id, char *name, int item_amount, database_t *db);
+bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, database_t *db);
 
 /*
 Calculate the cost of a shopping cart. If a cart holds 2 items of a merch M1 with a price of 50 and 8 items of a merch M2 with a price of 3 the cost of the cart is 2×50+8×3=124
 The action code shall be "=". The action shall read the id of the cart.
 */
-int backend_calculate_cost_execute(int id, database_t *db);
+int backend_calculate_cost_execute(size_t id, database_t *db);
 
 /*
 Undos an action.
@@ -139,3 +139,13 @@ void backend_quit_execute(database_t *database);
 The program should save its data on disk between runs. There is a discussion about how to implement this further down in this document.
 */
 void backend_persistence_on_file(database_t *db);
+
+
+bool backend_checkout_execute(size_t id, database_t *db);
+
+char *get_merch_name(merch_t *merch);
+char *get_merch_desc(merch_t *merch);
+int get_merch_price(merch_t *merch);
+
+char *get_location_name(location_t *location);
+int get_location_quantity(location_t *location);
