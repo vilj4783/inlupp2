@@ -1,4 +1,3 @@
-
 # compilation
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -g
@@ -13,7 +12,7 @@ MAIN_TEST = db_io.o db_main.o utils.o db_backend.o linked_list.o linked_list_ite
 BACKEND_TEST = db_backend.o  db_backend_tests.o linked_list.o linked_list_iterator.o hash_table.o hash_table_iterator.o
 
 # rules
-all: *.o
+all: $(BINS)
 
 test_all: $(BINS)
 
@@ -29,12 +28,11 @@ linked_list_iterator.o: ./libs/inlupp1/linked_list_iterator.o
 %.o:  %.c
 	$(CC) $(CFLAGS) $^ -c
 
-.PHONY: clean
+.PHONY: clean test_all test_backend
 
 clean:
-	@rm -fv *.o $(BINS)
+	@rm -fv *.o ../inlupp1/*.o $(BINS)
 
-	
 test_io: $(IO_TEST)
 	$(CC) $(CFLAGS) $^ -o test_io $(CUNIT_LINK)
 	# ./test_io < test_input.txt

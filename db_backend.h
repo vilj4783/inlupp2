@@ -4,25 +4,25 @@
 
 /*
 merch
-    - Goods sold in this web store that may or may not be in stock.
-    - An example merch is
-        - “Wouldn’t it be Nice” (name)
-        - which is “a book by Brian Wilson and Todd Gould” (description)
-        - which costs 100 SEK (price – quite a bargain).
+- Goods sold in this web store that may or may not be in stock.
+- An example merch is
+- “Wouldn’t it be Nice” (name)
+- which is “a book by Brian Wilson and Todd Gould” (description)
+- which costs 100 SEK (price – quite a bargain).
 Stock
-    - Inventory for a specific merch
-    - e.g. we might have 1000 copies of “Wouldn’t it be Nice”
-    - that we hope might get into the hands of eager buyers.
-    - These 1000 copies might be spread across different storage locations.
+- Inventory for a specific merch
+- e.g. we might have 1000 copies of “Wouldn’t it be Nice”
+- that we hope might get into the hands of eager buyers.
+- These 1000 copies might be spread across different storage locations.
 Storage Location
-    - A place that holds at least 1 copy of some merch.
-    - For example, the 1000 copies of “Wouldn’t it be Nice” could be stored at storage locations A25, B17 and C04.
-    - We do not keep track of empty storage locations. We also do not support mixing the items stored on a single location.
+- A place that holds at least 1 copy of some merch.
+- For example, the 1000 copies of “Wouldn’t it be Nice” could be stored at storage locations A25, B17 and C04.
+- We do not keep track of empty storage locations. We also do not support mixing the items stored on a single location.
 Be in stock
     A merch is considered in stock if there is at least one storage location that holds at least 1 copy of it.
 Shopping cart
-    - A “list” of merch that a customer is interested in with an associated quantity for each.
-    - For example, a shopping cart can be empty, or hold 29 copies of “Wouldn’t it be Nice”.
+- A “list” of merch that a customer is interested in with an associated quantity for each.
+- For example, a shopping cart can be empty, or hold 29 copies of “Wouldn’t it be Nice”.
 
 */
 
@@ -30,7 +30,13 @@ typedef struct database database_t;
 
 typedef struct merch merch_t;
 
-typedef struct location location_t;
+typedef struct shelf shelf_t;
+
+struct shelf 
+{
+    char *shelf_name;
+    int quantity;
+};
 
 database_t *create_database(void);
 
@@ -40,7 +46,7 @@ A newly added merch is not in stock.
 Adding a new merch with the same name as an existing merch is not allowed.
 The action code shall be "A". The action shall read the name, description and price for the merch.
 */
-bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db);
+bool backend_add_merch_execute(char *name, char *desc, int price, database_t *database);
 
 /*
 This should list all items in the store. Items should preferably (soft requirement) be printed in alphabetical order on their names. Because there may be more things in the database than might fit on a screen, items should be printed 20 at a time, and the user is asked to continue listing (if possible) or return to the main menu.
@@ -52,7 +58,7 @@ ioopm_list_t *backend_list_merch_execute(database_t *database);
 Removes an item completely from the warehouse, including all its stock.
 The action code shall be "D". The action shall read the name of the merch and a confirmation string. The merch shall be removed only if the confirmation string begins with "Y" or "y".
 */
-bool backend_remove_merch_execute(char *name, database_t *db);
+bool backend_remove_merch_execute(char *name, database_t *database);
 
 /*
 Allows changing the name, description and price of a merch. Note that this does not affect its stock.
@@ -67,7 +73,7 @@ List all the storage locations for a particular merch, along with the quantities
 Names of storage locations follow this format always: one capital letter (A-Z) followed by two digits (0-9).
 The action code shall be "S. The action shall read the name of the merch.
 */
-ioopm_list_t *backend_show_stock_execute(char *name, database_t *db);
+ioopm_list_t *backend_show_stock_execute(database_t *database, char *name);
 
 /*
 Increases the stock of a merch by at least one.
@@ -127,7 +133,7 @@ Quits the program.
 The action code shall be "Q".
 The action shall read a confirmation string. The program shall exit only if the confirmation string begins with "Y" or "y"
 */
-void backend_quit_execute(database_t *db);
+void backend_quit_execute(database_t *database);
 
 /*
 The program should save its data on disk between runs. There is a discussion about how to implement this further down in this document.
