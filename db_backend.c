@@ -51,6 +51,14 @@ size_t id_hash(elem_t id)
     return id.i;
 }
 
+typedef struct shelf shelf_t;
+
+struct shelf 
+{
+    char *shelf_name;
+    int quantity;
+};
+
 bool id_key_eq(elem_t k1, elem_t k2)
 {
     return k1.i != k2.i;
@@ -193,8 +201,8 @@ void destroy_merch(merch_t *merch)
 database_t *create_database(void)
 {
     database_t *new_database = calloc(1, sizeof(database_t));
-    new_database->merch_ht = ioopm_hash_table_create(string_knr_hash, string_key_eq);
-    new_database->shelf_ht = ioopm_hash_table_create(string_knr_hash, string_key_eq);
+    new_database->merch_ht = ioopm_hash_table_create(string_knr_hash, string_equal);
+    new_database->shelf_ht = ioopm_hash_table_create(string_knr_hash, string_equal);
     new_database->cart_ht = ioopm_hash_table_create(id_hash, id_key_eq);
     return new_database;
 }
@@ -790,7 +798,7 @@ int get_location_quantity(shelf_t *location)
 }
 
 
-
+/*
 ioopm_list_t *backend_show_stock_execute(char *name, database_t *db) {
     elem_t result;
     if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), &result))
@@ -799,7 +807,7 @@ ioopm_list_t *backend_show_stock_execute(char *name, database_t *db) {
     }
     return NULL;
 }
-
+*/
 bool backend_checkout_execute(size_t id, database_t *db)
 {
     elem_t cart_elem = string_elem("placeholder");

@@ -147,5 +147,5 @@ char *get_merch_name(merch_t *merch);
 char *get_merch_desc(merch_t *merch);
 int get_merch_price(merch_t *merch);
 
-char *get_location_name(location_t *location);
-int get_location_quantity(location_t *location);
+char *get_location_name(shelf_t *location);
+int get_location_quantity(shelf_t *location);
