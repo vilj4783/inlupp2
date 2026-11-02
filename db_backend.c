@@ -64,6 +64,7 @@ void destroy_merch(merch_t *merch)
 
     free(merch->name);
     free(merch->desc);
+    
     //Iterator istället
     ioopm_list_t *locations = merch->locations;
     if (locations != NULL)
