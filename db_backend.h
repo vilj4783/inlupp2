@@ -38,51 +38,65 @@ struct shelf
     int quantity;
 };
 
+/// @brief Creates a new database
+/// @return A database that holds three hashtables, for merch, shelf and cart
 database_t *create_database(void);
 
-/*
-This adds a new merch to the warehouse with a name (string), description (string), and price (integer).
-A newly added merch is not in stock.
-Adding a new merch with the same name as an existing merch is not allowed.
-The action code shall be "A". The action shall read the name, description and price for the merch.
-*/
+/// @brief Adds a new merch to the database
+/// @pre database != NULL
+/// @pre name != NULL && desc != NULL
+/// @pre price >= 0
+/// @param name Name for the new merch
+/// @param desc Description of the new merch
+/// @param price Price of the new merch
+/// @param database The database to add the new merch into
+/// @return True if the new merch could be added to the database, otherwise false
 bool backend_add_merch_execute(char *name, char *desc, int price, database_t *database);
 
-/*
-This should list all items in the store. Items should preferably (soft requirement) be printed in alphabetical order on their names. Because there may be more things in the database than might fit on a screen, items should be printed 20 at a time, and the user is asked to continue listing (if possible) or return to the main menu.
-The action code shall be "L". The question to continue listing shall return to the main menu if the input begins with "N" or "n". For all other input (including an empty line) the listing shall continue.
-*/
+/// @brief Retrieves a list of all the merchandise names currently from the database (in alphabetical order)
+/// @pre database != NULL
+/// @param database The database to list all the merch from
+/// @return A list with all the merchandise in alphabetical order
 ioopm_list_t *backend_list_merch_execute(database_t *database);
 
-/*
-Removes an item completely from the warehouse, including all its stock.
-The action code shall be "D". The action shall read the name of the merch and a confirmation string. The merch shall be removed only if the confirmation string begins with "Y" or "y".
-*/
+/// @brief Removes a merch completely from the database, including all its stock and shelves 
+/// @pre database != NULL
+/// @pre name != NULL
+/// @param name The name of the merchandise to remove
+/// @param database The database to remove the merch from
+/// @return True if the merchandise was successfully removed, otherwise false
 bool backend_remove_merch_execute(char *name, database_t *database);
 
-/*
-Allows changing the name, description and price of a merch. Note that this does not affect its stock.
-Changing the name of a merch to the name of an existing merch is not allowed..
-Note that changing the name may mean changing the key unless you use a unique id for each merch.
-The action code shall be "E". The action shall read the old name of the merch, the new name, the new description, the new price for the merch and a confirmation string. The merch shall be updated only if the confirmation string begins with "Y" or "y".
-*/
+/// @brief Allows to edit an existing merchandise name, price and description. Does not affect its stock
+/// @pre database != NULL
+/// @pre old_name != NULL && new_name != NULL && new_desc != NULL
+/// @pre new_price >= 0 
+/// @param database The database containing the merch
+/// @param old_name Current name of the merch
+/// @param new_name New name for the merch
+/// @param new_desc New description for the merch
+/// @param new_price The new price for the merch
+/// @return True if the edit of the merchandise was successful, otherwise false
 bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_name, char *new_desc, int new_price);
 
-/*
-List all the storage locations for a particular merch, along with the quantities stored on each location. Storage locations should preferably be listed in alphabetical order (e.g., A20 before B01 and C01 before C10).
-Names of storage locations follow this format always: one capital letter (A-Z) followed by two digits (0-9).
-The action code shall be "S. The action shall read the name of the merch.
-*/
+/// @brief List all the storage locations for a particular merch along with the quantities stored 
+/// on each location. Storage locations are listed in alphabetical order
+/// @pre database != NULL
+/// @pre name != NULL
+/// @param database The database to list all the storage locations from
+/// @param name The name of the merch to list all the storage locations from
+/// @return A list in alphabetical order with the storage locations and the quantities stored on each location
 ioopm_list_t *backend_show_stock_execute(database_t *database, char *name);
 
-/*
-Increases the stock of a merch by at least one.
-You can replenish on an existing storage location or a new one.
-The stock for a merch is the sum of all items on all storage locations holding that merch.
-A storage location stocks items of one (type of) merch, never more.
-For simplicity, there is no limit to the amount of storage locations nor is there a limit on the number of items a location can hold.
-The action code shall be "P". The action shall read the id of the storage location, the name of the merch and the number of items to add.
-*/
+/// @brief Increases the stock of a merch by adding items to an existing or new shelf
+/// @pre database != NULL
+/// @pre merch != NULL && shelf != NULL
+/// @pre add > 0
+/// @param database The database containing the merch
+/// @param merch Name of the merch to replenish
+/// @param shelf The shelf location ID
+/// @param add The number of items to add 
+/// @return True if the stock were successfully increased, false otherwise
 bool backend_replenish_execute(database_t *database, char *merch, char *shelf, int add);
 
 /*
@@ -128,11 +142,10 @@ The action code shall be "U".
 */
 bool backend_undo_execute(database_t *db);
 
-/*
-Quits the program.
-The action code shall be "Q".
-The action shall read a confirmation string. The program shall exit only if the confirmation string begins with "Y" or "y"
-*/
+/// @brief Destroys the database and frees all allocated memory associated with it.
+/// Frees all merchandise, shelf allocations, duplicated strings, internal hash tables,
+/// and the database struct itself.
+/// @param database The database to destroy. If database is NULL, no operation is performed.
 void backend_quit_execute(database_t *database);
 
 /*
