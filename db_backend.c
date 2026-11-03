@@ -180,18 +180,18 @@ void destroy_merch(merch_t *merch)
 
     free(merch->name);
     free(merch->desc);
-    
-    //Iterator istället
+
     ioopm_list_t *locations = merch->locations;
     if (locations != NULL)
     {
-        size_t size = ioopm_list_size(locations);
-        while(size > 0)
+        ioopm_list_iterator_t *it = ioopm_list_iterator_create(locations);
+        while (!ioopm_list_iterator_at_end(it))
         {
-            shelf_t *shelf = ioopm_list_remove(locations, 0).p;
+            shelf_t *shelf = ioopm_list_iterator_current(it).p;
             destroy_shelf(shelf);
-            size--;
+            ioopm_list_iterator_advance(it);
         }
+        ioopm_list_iterator_destroy(it);
         ioopm_list_destroy(locations);
     }
     merch_cart_destroy(merch); // destroys all pointers to this merch from carts
