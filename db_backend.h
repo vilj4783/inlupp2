@@ -51,13 +51,13 @@ database_t *create_database(void);
 /// @param price Price of the new merch
 /// @param database The database to add the new merch into
 /// @return True if the new merch could be added to the database, otherwise false
-bool backend_add_merch_execute(char *name, char *desc, int price, database_t *database);
+bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db);
 
 /// @brief Retrieves a list of all the merchandise names currently from the database (in alphabetical order)
 /// @pre database != NULL
 /// @param database The database to list all the merch from
 /// @return A list with all the merchandise in alphabetical order
-ioopm_list_t *backend_list_merch_execute(database_t *database);
+ioopm_list_t *backend_list_merch_execute(database_t *db);
 
 /// @brief Removes a merch completely from the database, including all its stock and shelves 
 /// @pre database != NULL
@@ -65,7 +65,7 @@ ioopm_list_t *backend_list_merch_execute(database_t *database);
 /// @param name The name of the merchandise to remove
 /// @param database The database to remove the merch from
 /// @return True if the merchandise was successfully removed, otherwise false
-bool backend_remove_merch_execute(char *name, database_t *database);
+bool backend_remove_merch_execute(char *name, database_t *db);
 
 /// @brief Allows to edit an existing merchandise name, price and description. Does not affect its stock
 /// @pre database != NULL
@@ -77,7 +77,7 @@ bool backend_remove_merch_execute(char *name, database_t *database);
 /// @param new_desc New description for the merch
 /// @param new_price The new price for the merch
 /// @return True if the edit of the merchandise was successful, otherwise false
-bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_name, char *new_desc, int new_price);
+bool backend_edit_merch_execute(database_t *db, char *old_name, char *new_name, char *new_desc, int new_price);
 
 /// @brief List all the storage locations for a particular merch along with the quantities stored 
 /// on each location. Storage locations are listed in alphabetical order
@@ -86,7 +86,7 @@ bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_
 /// @param database The database to list all the storage locations from
 /// @param name The name of the merch to list all the storage locations from
 /// @return A list in alphabetical order with the storage locations and the quantities stored on each location
-ioopm_list_t *backend_show_stock_execute(database_t *database, char *name);
+ioopm_list_t *backend_show_stock_execute(database_t *db, char *name);
 
 /// @brief Increases the stock of a merch by adding items to an existing or new shelf
 /// @pre database != NULL
@@ -97,7 +97,7 @@ ioopm_list_t *backend_show_stock_execute(database_t *database, char *name);
 /// @param shelf The shelf location ID
 /// @param add The number of items to add 
 /// @return True if the stock were successfully increased, false otherwise
-bool backend_replenish_execute(database_t *database, char *merch, char *shelf, int add);
+bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add);
 
 /*
 Creates a new shopping cart in the system which is empty.
@@ -146,7 +146,7 @@ bool backend_undo_execute(database_t *db);
 /// Frees all merchandise, shelf allocations, duplicated strings, internal hash tables,
 /// and the database struct itself.
 /// @param database The database to destroy. If database is NULL, no operation is performed.
-void backend_quit_execute(database_t *database);
+void backend_quit_execute(database_t *db);
 
 /*
 The program should save its data on disk between runs. There is a discussion about how to implement this further down in this document.

@@ -297,13 +297,13 @@ static bool is_valid_shelf(const char *shelf)
 }
 
 
-bool backend_add_merch_execute(char *name, char *desc, int price, database_t *database)
+bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db)
 {
-    assert(database != NULL);
-    assert(database->merch_ht != NULL);
+    assert(db != NULL);
+    assert(db->merch_ht != NULL);
 
     elem_t key_check = string_elem(name);
-    ioopm_hash_table_t *merch_ht = database->merch_ht;
+    ioopm_hash_table_t *merch_ht = db->merch_ht;
 
     if(ioopm_hash_table_has_key(merch_ht, key_check))
     {
@@ -343,12 +343,12 @@ static void list_insert_sorted_string(ioopm_list_t *list, elem_t str_elem)
 }
 
 //Not in alphabetic order yet
-ioopm_list_t *backend_list_merch_execute(database_t *database)
+ioopm_list_t *backend_list_merch_execute(database_t *db)
 {
-    assert(database != NULL);
-    assert(database->merch_ht != NULL);
+    assert(db != NULL);
+    assert(db->merch_ht != NULL);
     ioopm_list_t *merch_list = ioopm_list_create();
-    ioopm_hash_table_iterator_t *it = ioopm_hash_table_iterator_create(database->merch_ht);
+    ioopm_hash_table_iterator_t *it = ioopm_hash_table_iterator_create(db->merch_ht);
 
     while (!ioopm_hash_table_iterator_at_end(it))
     {
@@ -382,14 +382,14 @@ static void remove_shelf(ioopm_hash_table_t *shelf_ht, ioopm_list_t *locations)
     ioopm_list_iterator_destroy(it);
 }
 
-bool backend_remove_merch_execute(char *name, database_t *database)
+bool backend_remove_merch_execute(char *name, database_t *db)
 {
-    assert(database != NULL);
-    assert(database->merch_ht != NULL);
-    assert(database->shelf_ht != NULL);
+    assert(db != NULL);
+    assert(db->merch_ht != NULL);
+    assert(db->shelf_ht != NULL);
 
-    ioopm_hash_table_t *merch_ht = database->merch_ht;
-    ioopm_hash_table_t *shelf_ht = database->shelf_ht;
+    ioopm_hash_table_t *merch_ht = db->merch_ht;
+    ioopm_hash_table_t *shelf_ht = db->shelf_ht;
 
     elem_t key = string_elem(name);
 
@@ -429,16 +429,19 @@ static void update_shelf_edit_merch(database_t *db, merch_t *merch, const char *
     ioopm_list_iterator_destroy(it);
 }
 
-bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_name, char *new_desc, int new_price)
+bool backend_edit_merch_execute(database_t *db, char *old_name, char *new_name, char *new_desc, int new_price)
 {
-    if (database == NULL || old_name == NULL || new_name == NULL || new_desc == NULL)
-    {
-        return false;
-    }
+    assert(db != NULL);
+    assert(db->merch_ht != NULL);
+    assert(db->shelf_ht != NULL);
+    assert(old_name != NULL);
+    assert(new_name != NULL);
+    assert(new_desc != NULL);
+    assert(new_price >= 0);
 
     elem_t old_key = string_elem(old_name);
     elem_t new_key = string_elem(new_name);
-    ioopm_hash_table_t *merch_ht = database->merch_ht;
+    ioopm_hash_table_t *merch_ht = db->merch_ht;
     elem_t dummy;
     if(!ioopm_hash_table_lookup(merch_ht, old_key, &dummy) )
     { 
@@ -457,7 +460,7 @@ bool backend_edit_merch_execute(database_t *database, char *old_name, char *new_
     {
         free(merch->name);
         merch->name = strdup(new_name);
-        update_shelf_edit_merch(database, merch, new_name);
+        update_shelf_edit_merch(db, merch, new_name);
     }
     free(merch->desc);
     merch->desc = strdup(new_desc);
@@ -484,14 +487,14 @@ static void list_insert_sorted_shelf(ioopm_list_t *list, elem_t shelf_elem)
     ioopm_list_append(list, shelf_elem);
 }
 
-ioopm_list_t *backend_show_stock_execute(database_t *database, char *name)
+ioopm_list_t *backend_show_stock_execute(database_t *db, char *name)
 {
-    assert(database != NULL);
+    assert(db != NULL);
     assert(name != NULL);
 
     elem_t merch_elem;
     // Control if item exist
-    if (!ioopm_hash_table_lookup(database->merch_ht, string_elem(name), &merch_elem))
+    if (!ioopm_hash_table_lookup(db->merch_ht, string_elem(name), &merch_elem))
     {
         return NULL; // Item doesn't exist
     }
@@ -534,18 +537,18 @@ static shelf_t *find_shelf(ioopm_list_t *locations, const char *shelf_name)
     return shelf;
 }
 
-bool backend_replenish_execute(database_t *database, char *merch, char *shelf, int add)
+bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add)
 {
-    assert(database != NULL);
-    assert(database->merch_ht != NULL);
-    assert(database->shelf_ht != NULL);
+    assert(db != NULL);
+    assert(db->merch_ht != NULL);
+    assert(db->shelf_ht != NULL);
 
     if(add <= 0 || !is_valid_shelf(shelf))
     {
         return false;
     }    
-    ioopm_hash_table_t *merch_ht = database->merch_ht; 
-    ioopm_hash_table_t *shelf_ht = database->shelf_ht; 
+    ioopm_hash_table_t *merch_ht = db->merch_ht; 
+    ioopm_hash_table_t *shelf_ht = db->shelf_ht; 
 
     elem_t merch_name = string_elem(merch);
     elem_t shelf_name = string_elem(shelf);
@@ -730,14 +733,14 @@ bool backend_undo_execute(database_t *db)
     return false; // CHEAT: (may change to void)
 }
 
-void backend_quit_execute(database_t *database)
+void backend_quit_execute(database_t *db)
 {
-    assert(database != NULL);
+    assert(db != NULL);
 
     // Free all items and their shelfs i merch_ht
-    if (database->merch_ht != NULL)
+    if (db->merch_ht != NULL)
     {
-        ioopm_hash_table_iterator_t *it = ioopm_hash_table_iterator_create(database->merch_ht);
+        ioopm_hash_table_iterator_t *it = ioopm_hash_table_iterator_create(db->merch_ht);
         while (!ioopm_hash_table_iterator_at_end(it))
         {
             elem_t val = ioopm_hash_table_iterator_current_value(it);
@@ -745,13 +748,13 @@ void backend_quit_execute(database_t *database)
             ioopm_hash_table_iterator_advance(it);
         }
         ioopm_hash_table_iterator_destroy(it);
-        ioopm_hash_table_destroy(database->merch_ht);
+        ioopm_hash_table_destroy(db->merch_ht);
     }
 
     // Free shelf_ht
-    if (database->shelf_ht != NULL)
+    if (db->shelf_ht != NULL)
     {
-        ioopm_hash_table_iterator_t *it_shelf = ioopm_hash_table_iterator_create(database->shelf_ht);
+        ioopm_hash_table_iterator_t *it_shelf = ioopm_hash_table_iterator_create(db->shelf_ht);
         while (!ioopm_hash_table_iterator_at_end(it_shelf))
         {
             elem_t val = ioopm_hash_table_iterator_current_value(it_shelf);
@@ -759,10 +762,10 @@ void backend_quit_execute(database_t *database)
             ioopm_hash_table_iterator_advance(it_shelf);
         }
         ioopm_hash_table_iterator_destroy(it_shelf);
-        ioopm_hash_table_destroy(database->shelf_ht);
+        ioopm_hash_table_destroy(db->shelf_ht);
     }
 
-    free(database);
+    free(db);
 }
 
 void backend_persistence_on_file(database_t *db)
