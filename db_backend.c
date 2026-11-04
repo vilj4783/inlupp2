@@ -64,26 +64,8 @@ bool id_key_eq(elem_t k1, elem_t k2)
     return k1.i != k2.i;
 }
 
-//Ta bort
-/*
-bool string_equal(elem_t k1, elem_t k2)
-{
-  return strcmp(k1.s, k2.s) == 0; // if elem_t has field char *string
-}
-//Ta bort
-size_t string_knr_hash(elem_t key)
-{
-  const char *str = key.s;
-  size_t result = 0;
-  while (*str != '\0')
-  {
-    result = result * 31 + ((unsigned char) *str);
-    str++;
-  }
-  return result;
-}
-*/
-
+/// @brief Destroys a shelf structure and frees its allocated shelf name
+/// @param shelf The shelf structure to destroy
 static void destroy_shelf(shelf_t *shelf)
 {
     if(shelf == NULL)
@@ -171,6 +153,8 @@ static bool merch_cart_destroy(merch_t *merch) // removes entries of a merch in 
     return false;
 }
 
+/// @brief Destroys a merchandise item and frees all associated memory
+/// @param merch The merch to destroy
 static void destroy_merch(merch_t *merch)
 {
     if(merch == NULL)
@@ -207,6 +191,11 @@ database_t *create_database(void)
     return new_database;
 }
 
+/// @brief Creates a new merch
+/// @param name Name of the merch
+/// @param desc Description of the merch
+/// @param price Price of the merch
+/// @return Pointer to newly allocated merch_t, or NULL if allocation fails
 static merch_t *create_merch(char *name, char *desc, int price)
 {
     merch_t *new_merch = calloc(1, sizeof(merch_t));
@@ -271,6 +260,11 @@ static cart_entry_t *create_cart_entry(merch_t *merch, size_t merch_amount, cart
     return cart_entry;
 }
 
+/// @brief Creates a new shelf
+/// @param locations Location list where the new shelf is added
+/// @param shelf_name Name of the shelf
+/// @param quantity Initial quantity placed on this shelf
+/// @return Pointer to newly allocated shelf_t
 static shelf_t *create_shelf(ioopm_list_t *locations, char *shelf_name, int quantity)
 {
     assert(locations != NULL);
@@ -288,6 +282,9 @@ static shelf_t *create_shelf(ioopm_list_t *locations, char *shelf_name, int quan
     return shelf;
 }
 
+/// @brief Validates if a shelf string follows the correct format (eg. A01)
+/// @param shelf The shelf identifier to validate
+/// @return True if format is valid, false otherwise
 static bool is_valid_shelf(const char *shelf)
 {
     if (shelf == NULL || strlen(shelf) != 3)
@@ -311,9 +308,10 @@ bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db
     elem_t key_check = string_elem(name);
     ioopm_hash_table_t *merch_ht = db->merch_ht;
 
+    // Check if item name already exists in database
     if(ioopm_hash_table_has_key(merch_ht, key_check))
     {
-        return false; //Merch already exists
+        return false;
     }
     
     merch_t *new_merch = create_merch(name, desc, price);
@@ -322,14 +320,17 @@ bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db
         return false;
     }
 
+    // Insert merch into hash table
     elem_t key = string_elem(new_merch->name);
     elem_t value = ptr_elem(new_merch);
-
     ioopm_hash_table_insert(merch_ht, key, value);
     return true;
 } // note to self indirect link from merch_t to carts via ID
 
-//Sort in alphabetic order
+
+/// @brief Inserts a string element into a linked list in ascending alphabetical order
+/// @param list Target linked list to insert into
+/// @param str_elem String element (elem_t.s) to insert
 static void list_insert_sorted_string(ioopm_list_t *list, elem_t str_elem)
 {
     size_t size = ioopm_list_size(list);
@@ -344,7 +345,7 @@ static void list_insert_sorted_string(ioopm_list_t *list, elem_t str_elem)
             return;
         }
     }
-    // If its bigger than all current, add to last place
+    // If its greater than all elements, add to last place
     ioopm_list_append(list, str_elem);
 }
 
@@ -370,6 +371,9 @@ ioopm_list_t *backend_list_merch_execute(database_t *db)
     return merch_list;
 }
 
+/// @brief Removes and frees all shelves associated with a merchandise item from shelf_ht
+/// @param shelf_ht Hash table mapping shelf names to merchandise names
+/// @param locations List of shelf locations belonging to the item
 static void remove_shelf(ioopm_hash_table_t *shelf_ht, ioopm_list_t *locations)
 {
     ioopm_list_iterator_t *it = ioopm_list_iterator_create(locations);
@@ -378,7 +382,7 @@ static void remove_shelf(ioopm_hash_table_t *shelf_ht, ioopm_list_t *locations)
         shelf_t *shelf = ioopm_list_iterator_current(it).p;
         elem_t shelf_key = string_elem(shelf->shelf_name);
         elem_t removed_val;
-        // ÄNDRING: Frigör den strdup-allokerade strängen som låg som värde i shelf_ht
+
         if (ioopm_hash_table_remove(shelf_ht, shelf_key, &removed_val))
         {
             free(removed_val.s);
@@ -397,29 +401,38 @@ bool backend_remove_merch_execute(char *name, database_t *db)
 
     ioopm_hash_table_t *merch_ht = db->merch_ht;
     ioopm_hash_table_t *shelf_ht = db->shelf_ht;
-
     elem_t key = string_elem(name);
-
     elem_t result_lookup;
     
+    // Return false if item does not exist
     if(!ioopm_hash_table_lookup(merch_ht, key, &result_lookup))
     {
-        return false; //Merch doesn't exists, can't be removed
+        return false;
     }
     merch_t *merch = result_lookup.p;
-    ioopm_list_t *locations = merch->locations;
 
-    remove_shelf(shelf_ht, locations);
+    // Free all associated shelves and remove mapping from shelf_ht
+    remove_shelf(shelf_ht, merch->locations);
+    
     elem_t remove_val;
-
     ioopm_hash_table_remove(merch_ht, key, &remove_val);
     destroy_merch(merch);
 
     return true;
 }
 
+/// @brief Updates shelf_ht mapping when a merchandise item changes name
+/// @param db The database where the merch and shelf exist in
+/// @param merch The merchandise item being renamed
+/// @param new_name The new name assigned to the merchandise
 static void update_shelf_edit_merch(database_t *db, merch_t *merch, const char *new_name)
 {
+    assert(db != NULL);
+    assert(db->shelf_ht != NULL);
+    assert(merch != NULL);
+    assert(merch->locations != NULL);
+    assert(new_name != NULL);
+
     ioopm_list_iterator_t *it = ioopm_list_iterator_create(merch->locations);
     while (!ioopm_list_iterator_at_end(it))
     {
@@ -450,33 +463,43 @@ bool backend_edit_merch_execute(database_t *db, char *old_name, char *new_name, 
     elem_t new_key = string_elem(new_name);
     ioopm_hash_table_t *merch_ht = db->merch_ht;
     elem_t dummy;
+
+    // Item must exist to be edited
     if(!ioopm_hash_table_lookup(merch_ht, old_key, &dummy) )
     { 
         return false;
     }
+    // New name cannot collide with another existing merch
     if (strcmp(old_name, new_name) != 0 && ioopm_hash_table_lookup(merch_ht, new_key, &dummy))
     {
         return false;
     }
-    //Ändra i merch->ht till det nya
+
     elem_t removed_merch;
     ioopm_hash_table_remove(merch_ht, old_key, &removed_merch);
     merch_t *merch = removed_merch.p;
     
+    // Update name and associated shelf registrations if renamed
     if (strcmp(old_name, new_name) != 0)
     {
         free(merch->name);
         merch->name = strdup(new_name);
         update_shelf_edit_merch(db, merch, new_name);
     }
+
+    // Update description and price
     free(merch->desc);
     merch->desc = strdup(new_desc);
     merch->price = new_price;
     
+    // Re-insert into hash table
     ioopm_hash_table_insert(merch_ht, string_elem(merch->name), ptr_elem(merch));
     return true;
 }
 
+/// @brief Inserts a shelf into a list in alphabetical order by shelf_name
+/// @param list Target linked list
+/// @param shelf Shelf to insert
 static void list_insert_sorted_shelf(ioopm_list_t *list, elem_t shelf_elem)
 {
     shelf_t *new_shelf = shelf_elem.p;
@@ -500,7 +523,7 @@ ioopm_list_t *backend_show_stock_execute(database_t *db, char *name)
     assert(name != NULL);
 
     elem_t merch_elem;
-    // Control if item exist
+
     if (!ioopm_hash_table_lookup(db->merch_ht, string_elem(name), &merch_elem))
     {
         return NULL; // Item doesn't exist
@@ -522,6 +545,10 @@ ioopm_list_t *backend_show_stock_execute(database_t *db, char *name)
     return sorted_shelves;
 }
 
+/// @brief Finds a shelf matching the shelf name within a location list
+/// @param locations List containing shelf_t elements
+/// @param shelf Shelf identifier to search for
+/// @return Pointer to the found shelf_t, or NULL if not found
 static shelf_t *find_shelf(ioopm_list_t *locations, const char *shelf_name)
 {
     if (locations == NULL || shelf_name == NULL)
@@ -555,34 +582,36 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add
     if(add <= 0 || !is_valid_shelf(shelf))
     {
         return false;
-    }    
+    }
+
     ioopm_hash_table_t *merch_ht = db->merch_ht; 
     ioopm_hash_table_t *shelf_ht = db->shelf_ht; 
-
     elem_t merch_name = string_elem(merch);
     elem_t shelf_name = string_elem(shelf);
-
     elem_t merch_elem;
+
+    // Merchandise item must exist
     if (!ioopm_hash_table_lookup(merch_ht, merch_name, &merch_elem))
     {
-        return false; //Checks if we have item
+        return false;
     }
-    merch_t *target_merch = merch_elem.p;
 
+    merch_t *target_merch = merch_elem.p;
     elem_t *current = &string_elem("placeholder");
+
+    // Shelf already in use
     if (ioopm_hash_table_lookup(shelf_ht, shelf_name, current))
     {
-        //Checks if another merch on the shelf
+        //Checks if another merch uses the shelf
         if (strcmp(current->s, merch) != 0) 
         {
             return false; // Shelf is connected with another merch!
         }
 
-        // Merch exist on current shelf, add to quantity
+        // Increase stock on existing shelf
         shelf_t *existing_shelf = find_shelf(target_merch->locations, shelf);
         existing_shelf->quantity += add;
         target_merch->unclaimed_stock += add;
-
         return true;
     }
     else
@@ -757,7 +786,7 @@ void backend_quit_execute(database_t *db)
         ioopm_hash_table_destroy(db->merch_ht);
     }
 
-    // Free shelf_ht
+    // Free all duplicated merch names stored in shelf_ht
     if (db->shelf_ht != NULL)
     {
         ioopm_hash_table_iterator_t *it_shelf = ioopm_hash_table_iterator_create(db->shelf_ht);
@@ -770,17 +799,9 @@ void backend_quit_execute(database_t *db)
         ioopm_hash_table_iterator_destroy(it_shelf);
         ioopm_hash_table_destroy(db->shelf_ht);
     }
-    // Free all carts
+    // Destroy cart hash table (if allocated)
     if (db->cart_ht != NULL)
     {
-        ioopm_hash_table_iterator_t *it_cart = ioopm_hash_table_iterator_create(db->cart_ht);
-        while (!ioopm_hash_table_iterator_at_end(it_cart))
-        {
-            elem_t val = ioopm_hash_table_iterator_current_value(it_cart);
-            destroy_cart(val.p); 
-            ioopm_hash_table_iterator_advance(it_cart);
-        }
-        ioopm_hash_table_iterator_destroy(it_cart);
         ioopm_hash_table_destroy(db->cart_ht);
     }
 
