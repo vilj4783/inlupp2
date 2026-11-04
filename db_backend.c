@@ -171,7 +171,7 @@ static bool merch_cart_destroy(merch_t *merch) // removes entries of a merch in 
     return false;
 }
 
-void destroy_merch(merch_t *merch)
+static void destroy_merch(merch_t *merch)
 {
     if(merch == NULL)
     {
@@ -271,8 +271,11 @@ static cart_entry_t *create_cart_entry(merch_t *merch, size_t merch_amount, cart
     return cart_entry;
 }
 
-static ioopm_list_t *create_shelf(ioopm_list_t *locations, char *shelf_name, int quantity)
+static shelf_t *create_shelf(ioopm_list_t *locations, char *shelf_name, int quantity)
 {
+    assert(locations != NULL);
+    assert(shelf_name != NULL);
+    assert(quantity > 0);
     shelf_t *shelf = calloc(1, sizeof(shelf_t));
     shelf->shelf_name = strdup(shelf_name);
     if (shelf->shelf_name == NULL)
@@ -301,6 +304,9 @@ bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db
 {
     assert(db != NULL);
     assert(db->merch_ht != NULL);
+    assert(name != NULL);
+    assert(desc != NULL);
+    assert(price >= 0);
 
     elem_t key_check = string_elem(name);
     ioopm_hash_table_t *merch_ht = db->merch_ht;
@@ -387,6 +393,7 @@ bool backend_remove_merch_execute(char *name, database_t *db)
     assert(db != NULL);
     assert(db->merch_ht != NULL);
     assert(db->shelf_ht != NULL);
+    assert(name != NULL);
 
     ioopm_hash_table_t *merch_ht = db->merch_ht;
     ioopm_hash_table_t *shelf_ht = db->shelf_ht;
@@ -466,7 +473,7 @@ bool backend_edit_merch_execute(database_t *db, char *old_name, char *new_name, 
     merch->desc = strdup(new_desc);
     merch->price = new_price;
     
-    ioopm_hash_table_insert(merch_ht, new_key, ptr_elem(merch));
+    ioopm_hash_table_insert(merch_ht, string_elem(merch->name), ptr_elem(merch));
     return true;
 }
 
@@ -542,6 +549,8 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add
     assert(db != NULL);
     assert(db->merch_ht != NULL);
     assert(db->shelf_ht != NULL);
+    assert(merch != NULL);
+    assert(shelf != NULL);
 
     if(add <= 0 || !is_valid_shelf(shelf))
     {
