@@ -123,9 +123,10 @@ static bool merch_cart_entry_destroy(merch_t *merch, cart_t *cart) // removes a 
             {
                 // destroys cart entry and removes it from list
                 destroy_cart_entry(entry, cart->cart_id);
-                ioopm_list_iterator_remove(entry_iterator);
+                free(entry);
+            } else {
+                ioopm_list_iterator_advance(entry_iterator);
             }
-            ioopm_list_iterator_advance(entry_iterator);
         }
         ioopm_list_iterator_destroy(entry_iterator);
         return true;
@@ -144,7 +145,7 @@ static bool merch_cart_destroy(merch_t *merch) // removes entries of a merch in 
         {
 
             merch_cart_entry_destroy(merch, ioopm_list_iterator_current(cart_pointer_iterator).p);   
-            ioopm_list_iterator_advance(cart_pointer_iterator);
+            ioopm_list_iterator_remove(cart_pointer_iterator);
         }
 
         ioopm_list_iterator_destroy(cart_pointer_iterator);
@@ -166,7 +167,7 @@ static void destroy_merch(merch_t *merch)
     free(merch->desc);
 
     ioopm_list_t *locations = merch->locations;
-    if (locations != NULL)
+    if (!ioopm_list_is_empty(locations)) 
     {
         ioopm_list_iterator_t *it = ioopm_list_iterator_create(locations);
         while (!ioopm_list_iterator_at_end(it))
@@ -176,9 +177,10 @@ static void destroy_merch(merch_t *merch)
             ioopm_list_iterator_advance(it);
         }
         ioopm_list_iterator_destroy(it);
-        ioopm_list_destroy(locations);
     }
+    ioopm_list_destroy(locations);
     merch_cart_destroy(merch); // destroys all pointers to this merch from carts
+    ioopm_list_destroy(merch->carts);
     free(merch);
 }
 
@@ -888,10 +890,7 @@ bool backend_checkout_execute(size_t id, database_t *db)
             }
             ioopm_list_iterator_destroy(locations);
 
-            if(ioopm_list_is_empty(cart_entry->merch->locations))
-            {
-                backend_remove_merch_execute(cart_entry->merch->name, db);
-            }
+            
             ioopm_list_iterator_advance(entries);
         }
 

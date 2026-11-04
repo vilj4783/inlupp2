@@ -227,6 +227,8 @@ void test_create_remove_cart(void)
 
     CU_ASSERT(backend_remove_cart_execute(0, db));
     CU_ASSERT(backend_remove_cart_execute(1, db));
+
+    backend_quit_execute(db);
 }
 
 
@@ -258,14 +260,21 @@ void test_add_to_remove_from_cart(void)
 
     CU_ASSERT(backend_checkout_execute(0, db));
 
-    CU_ASSERT(ioopm_list_is_empty(backend_show_stock_execute(db, "Pear")));
-    CU_ASSERT_FALSE(ioopm_list_is_empty(backend_show_stock_execute(db, "Apple")))
+    ioopm_list_t *pear_list = backend_show_stock_execute(db, "Pear");
+    ioopm_list_t *apple_list = backend_show_stock_execute(db, "Apple");
+    
+    CU_ASSERT(ioopm_list_is_empty(pear_list));
+    CU_ASSERT_FALSE(ioopm_list_is_empty(apple_list))
+
+    ioopm_list_destroy(pear_list);
+    ioopm_list_destroy(apple_list);
 
     CU_ASSERT(backend_remove_cart_execute(1, db));
     CU_ASSERT(backend_remove_cart_execute(2, db));
     
     CU_ASSERT_FALSE(backend_remove_cart_execute(3, db)); // nonexisting cart
     
+    backend_quit_execute(db);
 
 }
 
