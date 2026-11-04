@@ -26,16 +26,20 @@ Shopping cart
 
 */
 
+/// @brief Structure representing the entire webstore database
 typedef struct database database_t;
 
+/// @brief Structure representing a merchandise item in the store
 typedef struct merch merch_t;
 
+/// @brief Represents a specific storage location and the quantity of an item stored there.
 typedef struct shelf shelf_t;
 
+/// @brief Details of a storage location.
 struct shelf 
 {
-    char *shelf_name;
-    int quantity;
+    char *shelf_name; /// Shelf identifier
+    int quantity; /// Number of items stored on this shelf
 };
 
 /// @brief Creates a new database
@@ -43,35 +47,35 @@ struct shelf
 database_t *create_database(void);
 
 /// @brief Adds a new merch to the database
-/// @pre database != NULL
+/// @pre db != NULL
 /// @pre name != NULL && desc != NULL
 /// @pre price >= 0
 /// @param name Name for the new merch
 /// @param desc Description of the new merch
 /// @param price Price of the new merch
-/// @param database The database to add the new merch into
+/// @param db The database to add the new merch into
 /// @return True if the new merch could be added to the database, otherwise false
 bool backend_add_merch_execute(char *name, char *desc, int price, database_t *db);
 
 /// @brief Retrieves a list of all the merchandise names currently from the database (in alphabetical order)
-/// @pre database != NULL
-/// @param database The database to list all the merch from
+/// @pre db != NULL
+/// @param db The database to list all the merch from
 /// @return A list with all the merchandise in alphabetical order
 ioopm_list_t *backend_list_merch_execute(database_t *db);
 
 /// @brief Removes a merch completely from the database, including all its stock and shelves 
-/// @pre database != NULL
+/// @pre db != NULL
 /// @pre name != NULL
 /// @param name The name of the merchandise to remove
-/// @param database The database to remove the merch from
+/// @param db The database to remove the merch from
 /// @return True if the merchandise was successfully removed, otherwise false
 bool backend_remove_merch_execute(char *name, database_t *db);
 
 /// @brief Allows to edit an existing merchandise name, price and description. Does not affect its stock
-/// @pre database != NULL
+/// @pre db != NULL
 /// @pre old_name != NULL && new_name != NULL && new_desc != NULL
 /// @pre new_price >= 0 
-/// @param database The database containing the merch
+/// @param db The database containing the merch
 /// @param old_name Current name of the merch
 /// @param new_name New name for the merch
 /// @param new_desc New description for the merch
@@ -81,18 +85,18 @@ bool backend_edit_merch_execute(database_t *db, char *old_name, char *new_name, 
 
 /// @brief List all the storage locations for a particular merch along with the quantities stored 
 /// on each location. Storage locations are listed in alphabetical order
-/// @pre database != NULL
+/// @pre db != NULL
 /// @pre name != NULL
-/// @param database The database to list all the storage locations from
+/// @param db The database to list all the storage locations from
 /// @param name The name of the merch to list all the storage locations from
 /// @return A list in alphabetical order with the storage locations and the quantities stored on each location
 ioopm_list_t *backend_show_stock_execute(database_t *db, char *name);
 
 /// @brief Increases the stock of a merch by adding items to an existing or new shelf
-/// @pre database != NULL
+/// @pre db != NULL
 /// @pre merch != NULL && shelf != NULL
 /// @pre add > 0
-/// @param database The database containing the merch
+/// @param db The database containing the merch
 /// @param merch Name of the merch to replenish
 /// @param shelf The shelf location ID
 /// @param add The number of items to add 
@@ -145,7 +149,7 @@ bool backend_undo_execute(database_t *db);
 /// @brief Destroys the database and frees all allocated memory associated with it.
 /// Frees all merchandise, shelf allocations, duplicated strings, internal hash tables,
 /// and the database struct itself.
-/// @param database The database to destroy. If database is NULL, no operation is performed.
+/// @param db The database to destroy. If database is NULL, no operation is performed.
 void backend_quit_execute(database_t *db);
 
 /*

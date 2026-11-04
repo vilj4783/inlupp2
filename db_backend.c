@@ -282,7 +282,7 @@ static ioopm_list_t *create_shelf(ioopm_list_t *locations, char *shelf_name, int
     }
     shelf->quantity = quantity;
     ioopm_list_append(locations, ptr_elem(shelf));
-    return locations;
+    return shelf;
 }
 
 static bool is_valid_shelf(const char *shelf)
@@ -578,14 +578,11 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add
     }
     else
     {
-        // If shelf doesn't exist, create a new shelf
-        create_shelf(target_merch->locations, shelf, add);
-
-        // Hämta nyskapade hyllans allokerade namn som nyckel i shelf_ht istället för stack-variabeln shelf
+        // Create new shelf for merch and insert shelf name to merch in shelf_ht
         target_merch->unclaimed_stock += add;
-        shelf_t *newly_added = find_shelf(target_merch->locations, shelf);
-        assert(newly_added != NULL);
-        ioopm_hash_table_insert(shelf_ht, string_elem(newly_added->shelf_name), string_elem(strdup(merch))); 
+        shelf_t *new_shelf = create_shelf(target_merch->locations, shelf, add);
+        assert(new_shelf != NULL);
+        ioopm_hash_table_insert(shelf_ht, string_elem(new_shelf->shelf_name), string_elem(strdup(merch))); 
         return true;
     }
 }
@@ -763,6 +760,19 @@ void backend_quit_execute(database_t *db)
         }
         ioopm_hash_table_iterator_destroy(it_shelf);
         ioopm_hash_table_destroy(db->shelf_ht);
+    }
+    // Free all carts
+    if (db->cart_ht != NULL)
+    {
+        ioopm_hash_table_iterator_t *it_cart = ioopm_hash_table_iterator_create(db->cart_ht);
+        while (!ioopm_hash_table_iterator_at_end(it_cart))
+        {
+            elem_t val = ioopm_hash_table_iterator_current_value(it_cart);
+            destroy_cart(val.p); 
+            ioopm_hash_table_iterator_advance(it_cart);
+        }
+        ioopm_hash_table_iterator_destroy(it_cart);
+        ioopm_hash_table_destroy(db->cart_ht);
     }
 
     free(db);
