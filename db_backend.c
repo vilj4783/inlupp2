@@ -630,7 +630,7 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t 
 int backend_create_cart_execute(database_t *db)
 {
     // TODO: implement
-    size_t cart_amount = ioopm_hash_table_size(db->cart_ht);
+    size_t cart_amount = ioopm_hash_table_size(db->cart_ht) + 1; // starts with id = 1
     cart_t *cart = create_cart(cart_amount);
     elem_t key = int_elem(cart_amount);
     ioopm_hash_table_insert(db->cart_ht, key, ptr_elem(cart));
@@ -720,11 +720,17 @@ bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount,
                 entry->merch_amount -= item_amount;
                 merch->unclaimed_stock += item_amount;
 
+                ioopm_list_iterator_destroy(entry_iterator);
+                return true;
+
             } else
             {
                 destroy_cart_entry(entry, id);
                 merch->unclaimed_stock += entry->merch_amount;
                 ioopm_list_iterator_destroy;(entry_iterator);
+
+                ioopm_list_iterator_destroy(entry_iterator);
+                return true;
             }
         }
         ioopm_list_iterator_advance(entry_iterator);

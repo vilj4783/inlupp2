@@ -3,7 +3,7 @@
 
 action_t ask_question_action(char *question);
 
-bool ask_question_confirm_Y(char *question);
+bool ask_question_confirm_Y();
 
-bool ask_question_confirm_N(char *question);
+bool ask_question_confirm_N();
 

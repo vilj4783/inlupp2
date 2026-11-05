@@ -5,7 +5,6 @@
 #include "db_io.h"
 #include "./libs/utils/utils.h"
 
-
 bool valid_action(char *str)
 {
     // if(str[1] == '\n') return false; // dunno wtf is up w taht
@@ -74,15 +73,14 @@ bool convert_N(char *str)
 
 
 action_t ask_question_action(char *question) {
-    return ask_question(question, (check_func *) valid_action, (convert_func *) convert_action).action;
+    return (action_t) ask_question(question, (check_func *) valid_action, (convert_func *) convert_action).int_value;
 }
 
-bool ask_question_confirm_Y(char *question)
+bool ask_question_confirm_Y()
 {
-    return ask_question(question, (check_func *) bool_valid, (convert_func *) convert_Y).bool_value;
+    return !((bool) ask_question("input Y or y to continue: ", (check_func *) bool_valid, (convert_func *) convert_Y).int_value);
 }
-
-bool ask_question_confirm_N(char *question)
+bool ask_question_confirm_N()
 {
-    return ask_question(question, (check_func *) bool_valid, (convert_func *) convert_N).bool_value;
+    return (bool) ask_question("input N or n to list more: ", (check_func *) bool_valid, (convert_func *) convert_N).int_value;
 }

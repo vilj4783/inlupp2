@@ -6,44 +6,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// TODO: all backend functions with a fail state need to return a bool
-/*
-database_t *database_create(void) // dodge: placeholder function
-{
-    return calloc(1, sizeof(database_t));
-}
+#define INPUT_ITEM "input item name: "
+#define INPUT_CART "input cart id: "
 
-bool backend_add_merch_execute(char *location_name, char *name, char *desc, int price, database_t *db)
-{
-    return true;
-}
+#define INPUT_DESC "input item description: "
+#define INPUT_PRICE "input item price: "
+#define INPUT_AMOUNT "input amount of items: "
 
-int backend_create_cart_execute(database_t *db)
-{
-    return -1;
-}
+#define INPUT_OLD_NAME "input old name: "
+#define INPUT_NEW_NAME "input new name: "
+#define INPUT_NEW_DESC "input new description: "
+#define INPUT_NEW_PRICE "input new item price: " 
 
-bool backend_checkout_execute(int cart_id, database_t *db)
-{
-    return true;
-}
+#define INPUT_ACTION "input action: "
 
-bool backend_replenish_execute(char *location_name, char *merch_name, int items_amount, database_t *db)
-{
-    return true;
-}
-*/
-
+#define UNAVAILABLE_ACTION "action unavailable"
+#define ACTION_MSG "action:"
 
 void add_merch_unify(database_t *db)
 {
-    // char *location_name = ask_question_string("input warehouse name: ");
-    char *item_name = ask_question_string("input item name: ");
-    char *item_desc = ask_question_string("input item description: ");
-    int item_price = ask_question_int("input item price: ");
+    char *item_name = ask_question_string(INPUT_ITEM);
+    char *item_desc = ask_question_string(INPUT_DESC);
+    int item_price = ask_question_int(INPUT_PRICE);
 
     bool success = backend_add_merch_execute(item_name, item_desc, item_price, db);
-    printf("action: %s merch %s, description %s, price %d\n",
+    printf("%s %s merch %s, description %s, price %d\n",
+        ACTION_MSG,
         success ? "added" : "failed to add",
         item_name,
         item_desc,
@@ -54,58 +42,59 @@ void add_merch_unify(database_t *db)
 
 void list_merch_unify(database_t *db)
 {
-    // TODO: fix the implementation of backend_list_merch to specification
     // IO should be handled here maybe create iterator
     ioopm_list_t *list = backend_list_merch_execute(db);
     ioopm_list_iterator_t *iter = ioopm_list_iterator_create(list);
     do {
         for(size_t i = 0    ; i < 20 && !ioopm_list_iterator_at_end(iter); i++)
         {
-            merch_t *merch = ioopm_list_iterator_current(iter).p;
-            printf("name: %s price: %d desc: %s \n", get_merch_name(merch), get_merch_price(merch), get_merch_desc(merch));
+            char *merch_name = ioopm_list_iterator_current(iter).s;
+            printf("name: %s\n", merch_name);
+            // printf("name: %s price: %d desc: %s \n", get_merch_name(merch), get_merch_price(merch), get_merch_desc(merch));
             ioopm_list_iterator_advance(iter);
         }
-    } while (!ioopm_list_iterator_at_end(iter) && ask_question_confirm_N("input N or n to list more: "));
+    } while (!ioopm_list_iterator_at_end(iter) && ask_question_confirm_N());
 
     ioopm_list_iterator_destroy(iter);
     ioopm_list_destroy(list);
     
 
-    printf("action: listed merch\n");
+    printf("%s listed merch\n", ACTION_MSG);
 }
 
 void remove_merch_unify(database_t *db)
 {
-    char *item_name = ask_question_string("input item name: ");
+    char *item_name = ask_question_string(INPUT_ITEM);
 
-    if (!ask_question_confirm_Y("input Y or y to continue: "))
+    if (ask_question_confirm_Y())
     {
-        printf("action: aborted remove merch %s\n", item_name);
+        printf("%s aborted remove merch %s\n", ACTION_MSG, item_name);
         return;
     }
 
     bool success = backend_remove_merch_execute(item_name, db);
 
-    printf("action: %s merch %s\n", success ? "removed" : "failed to remove", item_name);
+    printf("%s %s merch %s\n", ACTION_MSG, success ? "removed" : "failed to remove", item_name);
     
 }
 
 void edit_merch_unify(database_t *db)
 {
-    char *item_name_old = ask_question_string("input old item name: ");
-    char *item_name_new = ask_question_string("input new item name: ");
-    char *item_desc_new = ask_question_string("input new item description: ");
-    int item_price_new= ask_question_int("input new item price: ");
+    char *item_name_old = ask_question_string(INPUT_OLD_NAME);
+    char *item_name_new = ask_question_string(INPUT_NEW_NAME);
+    char *item_desc_new = ask_question_string(INPUT_NEW_DESC);
+    int item_price_new= ask_question_int(INPUT_NEW_PRICE);
 
-    if (!ask_question_confirm_Y("input Y or y to continue: "))
+    if (ask_question_confirm_Y())
     {
-        printf("action: aborted remove merch %s\n", item_name_old);
+        printf("%s aborted remove merch %s\n", ACTION_MSG, item_name_old);
         return;
     }
 
     bool success = backend_edit_merch_execute(db, item_name_old, item_name_new, item_desc_new, item_price_new);
 
-    printf("action: %s merch %s with new name %s new description %s new price %d\n",
+    printf("%s %s merch %s with new name %s new description %s new price %d\n",
+        ACTION_MSG,
         success ? "edited" : "failed to edit",
         item_name_old,
         item_name_new,
@@ -116,19 +105,20 @@ void edit_merch_unify(database_t *db)
 
 void show_stock_unify(database_t *db)
 {
-    char *item_name = ask_question_string("input item name: ");
+    char *item_name = ask_question_string(INPUT_ITEM);
 
-    ioopm_list_t *list = backend_show_stock_execute(item_name, db);
+    ioopm_list_t *list = backend_show_stock_execute(db, item_name);
     ioopm_list_iterator_t *iter = ioopm_list_iterator_create(list);
 
     while(!ioopm_list_iterator_at_end(iter))
     {
-        location_t *location = ioopm_list_iterator_current(iter).p;
+        shelf_t *location = ioopm_list_iterator_current(iter).p;
         printf("name: %s quantity: %d\n", get_location_name(location), get_location_quantity(location));
         ioopm_list_iterator_advance(iter);
     }
 
-    printf("action: %s stock for merch %s\n",
+    printf("%s %s stock for merch %s\n",
+        ACTION_MSG,
         !ioopm_list_is_empty(list) ? "showed" : "failed to show",
         item_name
     );
@@ -140,13 +130,14 @@ void show_stock_unify(database_t *db)
 void replenish_unify(database_t *db)
 {
     char *location_name = ask_question_string("input location name: ");
-    char *item_name = ask_question_string("input item name: ");
-    int item_amount = ask_question_int("input amount of items: ");
+    char *item_name = ask_question_string(INPUT_ITEM);
+    int item_amount = ask_question_int(INPUT_AMOUNT);
 
     // implementation depends on whether backend_replenish_execute takes int id or char *location name
     // CHEAT: assumes for location_name for now
-    bool success = backend_replenish_execute(db, location_name, item_name, item_amount);
-    printf("action: %s merch %s at location %s by %d\n",
+    bool success = backend_replenish_execute(db, item_name, location_name, item_amount);
+    printf("%s %s merch %s at location %s by %d\n",
+        ACTION_MSG,
         success ? "replenished" : "failed to replenish",
         item_name,
         location_name,
@@ -158,21 +149,22 @@ void create_cart_unify(database_t *db)
 {
     // FIXME: backend_create_cart_execute needs to return an int for id
     int cart_id = backend_create_cart_execute(db);
-    printf("action: created cart with id: %d\n", cart_id);
+    printf("%s created cart with id: %d\n", ACTION_MSG, cart_id);
 }
 
 void remove_cart_unify(database_t *db)
 {
-    int cart_id = ask_question_int("input cart id: ");
+    int cart_id = ask_question_int(INPUT_CART);
     
-    if (!ask_question_confirm_Y("input Y or y to continue: "))
+    if (ask_question_confirm_Y())
     {
-        printf("action: aborted remove cart for cart %d\n", cart_id);
+        printf("%s aborted remove cart for cart %d\n", ACTION_MSG, cart_id);
         return;
     }
 
     bool success = backend_remove_cart_execute(cart_id, db);
-    printf("action: %s cart with id %d\n",
+    printf("%s %s cart with id %d\n",
+        ACTION_MSG,
         success ? "removed" : "failed to remove",
         cart_id
     );
@@ -180,12 +172,13 @@ void remove_cart_unify(database_t *db)
 
 void add_to_cart_unify(database_t *db)
 {
-    int cart_id = ask_question_int("input cart id: ");
-    char *item_name = ask_question_string("input item name: ");
-    int item_amount = ask_question_int("input amount of items: ");
+    int cart_id = ask_question_int(INPUT_CART);
+    char *item_name = ask_question_string(INPUT_ITEM);
+    int item_amount = ask_question_int(INPUT_AMOUNT);
 
     bool success = backend_add_to_cart_execute(cart_id, item_name, item_amount, db);
-    printf("action: %s %d merch %s to cart %d\n",
+    printf("%s %s %d merch %s to cart %d\n",
+        ACTION_MSG,
         success ? "added" : "failed to add",
         item_amount,
         item_name,
@@ -196,12 +189,13 @@ void add_to_cart_unify(database_t *db)
 void remove_from_cart_unify(database_t *db)
 {
     
-    int cart_id = ask_question_int("input cart id: ");
-    char *item_name = ask_question_string("input item name: ");
-    int item_amount = ask_question_int("input amount of items: ");
+    int cart_id = ask_question_int(INPUT_CART);
+    char *item_name = ask_question_string(INPUT_ITEM);
+    int item_amount = ask_question_int(INPUT_AMOUNT);
     
     bool success = backend_remove_from_cart_execute(cart_id, item_name, item_amount, db);
-    printf("action: %s %d merch %s to cart %d\n",
+    printf("%s %s %d merch %s from cart %d\n",
+        ACTION_MSG,
         success ? "removed" : "failed to remove",
         item_amount,
         item_name,
@@ -211,17 +205,17 @@ void remove_from_cart_unify(database_t *db)
 
 void calculate_cost_unify(database_t *db)
 {
-    int cart_id = ask_question_int("input cart id: ");
+    int cart_id = ask_question_int(INPUT_CART);
 
     int cost = backend_calculate_cost_execute(cart_id, db);
-    printf("action: cart %d total cost is %d\n", cart_id, cost);
+    printf("%s cart %d total cost is %d\n", ACTION_MSG, cart_id, cost);
 }
 
 void checkout_unify(database_t *db)
 {
-    int cart_id = ask_question_int("input cart id: ");
+    int cart_id = ask_question_int(INPUT_CART);
     int success = backend_checkout_execute(cart_id, db);
-    printf("action: %s cart %d\n", success ? "checked out" : "failed to check out", cart_id);
+    printf("%s %s cart %d\n", ACTION_MSG, success ? "checked out" : "failed to check out", cart_id);
 
 }
 
@@ -229,13 +223,13 @@ void undo_unify(database_t *db) {return;} // DODGE: is a stub until implementati
 
 bool quit_unify(database_t *db)
 {
-    if(!ask_question_confirm_Y("input Y or y to continue: "))
+    if(ask_question_confirm_Y())
     {
-        printf("action: aborted quit\n");
+        printf("%s aborted quit\n", ACTION_MSG);
         return false;
     }
     backend_quit_execute(db);
-    printf("action: quit program\n");
+    printf("%s quit program\n", ACTION_MSG);
     return true;
 }
 
@@ -259,7 +253,7 @@ bool action_handler(action_t action, database_t *db) // returns true if should q
         case CHECKOUT: checkout_unify(db); break;
         case UNDO: undo_unify(db); break;
         case QUIT: return quit_unify(db);
-        default: printf("action unavailable"); break;
+        default: printf(UNAVAILABLE_ACTION); break;
     }
     return false;
 }
@@ -270,7 +264,7 @@ int main()
     
     while(true)
     {
-        action_t action = ask_question_action("input action: ");
+        action_t action = ask_question_action(INPUT_ACTION);
         if (action_handler(action, db)) {break;}
     }
 }
