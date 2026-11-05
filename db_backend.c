@@ -32,7 +32,7 @@ struct merch
 
 struct cart_entry
 {
-    int merch_amount;
+    size_t merch_amount;
     merch_t *merch;
 };
 
@@ -56,7 +56,7 @@ typedef struct shelf shelf_t;
 struct shelf 
 {
     char *shelf_name;
-    int quantity;
+    size_t quantity;
 };
 
 bool id_key_eq(elem_t k1, elem_t k2)
@@ -235,7 +235,6 @@ static bool is_in_cart(merch_t *merch, cart_t *cart)
         }
 
         ioopm_list_iterator_destroy(cart_pointer_iterator);
-        return false;
     }
     return false;
 }
@@ -574,7 +573,7 @@ static shelf_t *find_shelf(ioopm_list_t *locations, const char *shelf_name)
     return shelf;
 }
 
-bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add)
+bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t add)
 {
     assert(db != NULL);
     assert(db->merch_ht != NULL);
@@ -582,7 +581,7 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add
     assert(merch != NULL);
     assert(shelf != NULL);
 
-    if(add <= 0 || !is_valid_shelf(shelf))
+    if (!is_valid_shelf(shelf))
     {
         return false;
     }
@@ -654,7 +653,7 @@ bool backend_remove_cart_execute(size_t id, database_t *db)
     return false;;
 }
 
-bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db)
+bool backend_add_to_cart_execute(size_t id, char *name, size_t item_amount, database_t *db)
 {   
     elem_t *merch_elem = &string_elem("hello world"); // placeholder string
     elem_t *cart_elem = &ptr_elem(NULL); // placeholder ptr_elem
@@ -690,14 +689,13 @@ bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, databas
             
             return true;
         }
-        return false;
 
     }
     return false;
 
 }
 
-bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, database_t *db)
+bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount, database_t *db)
 {
     elem_t *merch_elem = &string_elem("placeholder");
     elem_t *cart_elem = &string_elem("placeholder");
@@ -839,7 +837,7 @@ char *get_location_name(shelf_t *location)
     return location->shelf_name;
 }
 
-int get_location_quantity(shelf_t *location)
+size_t get_location_quantity(shelf_t *location)
 {
     return location->quantity;
 }

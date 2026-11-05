@@ -39,7 +39,7 @@ typedef struct shelf shelf_t;
 struct shelf 
 {
     char *shelf_name; /// Shelf identifier
-    int quantity; /// Number of items stored on this shelf
+    size_t quantity; /// Number of items stored on this shelf
 };
 
 /// @brief Creates a new database
