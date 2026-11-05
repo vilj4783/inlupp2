@@ -38,6 +38,8 @@ void add_merch_unify(database_t *db)
         item_price
     );
 
+    free(item_name);
+    free(item_desc);
 }
 
 void list_merch_unify(database_t *db)
@@ -75,7 +77,7 @@ void remove_merch_unify(database_t *db)
     bool success = backend_remove_merch_execute(item_name, db);
 
     printf("%s %s merch %s\n", ACTION_MSG, success ? "removed" : "failed to remove", item_name);
-    
+    free(item_name);   
 }
 
 void edit_merch_unify(database_t *db)
@@ -101,6 +103,10 @@ void edit_merch_unify(database_t *db)
         item_desc_new,
         item_price_new
     );
+    free(item_name_old);
+    free(item_name_new);
+    free(item_desc_new);
+
 }
 
 void show_stock_unify(database_t *db)
@@ -125,6 +131,7 @@ void show_stock_unify(database_t *db)
 
     ioopm_list_iterator_destroy(iter);
     ioopm_list_destroy(list);
+    free(item_name);
 }
 
 void replenish_unify(database_t *db)
@@ -143,6 +150,8 @@ void replenish_unify(database_t *db)
         location_name,
         item_amount
     );
+    free(location_name);
+    free(item_name);
 }
 
 void create_cart_unify(database_t *db)
@@ -184,6 +193,7 @@ void add_to_cart_unify(database_t *db)
         item_name,
         cart_id
         );
+    free(item_name);
 }
 
 void remove_from_cart_unify(database_t *db)
@@ -201,6 +211,7 @@ void remove_from_cart_unify(database_t *db)
         item_name,
         cart_id
         );
+    free(item_name);
 }
 
 void calculate_cost_unify(database_t *db)

@@ -808,10 +808,16 @@ void backend_quit_execute(database_t *db)
         ioopm_hash_table_destroy(db->shelf_ht);
     }
     // Destroy cart hash table (if allocated)
-    if (db->cart_ht != NULL)
+    ioopm_hash_table_iterator_t *cart_iter = ioopm_hash_table_iterator_create(db->cart_ht);
+    while(!ioopm_hash_table_iterator_at_end(cart_iter)) 
     {
-        ioopm_hash_table_destroy(db->cart_ht);
+        destroy_cart((cart_t *) (ioopm_hash_table_iterator_current_value(cart_iter).p));
+        ioopm_hash_table_iterator_advance(cart_iter);
     }
+
+    // Destroy cart hash table (if allocated)
+    ioopm_hash_table_iterator_destroy(cart_iter);
+    ioopm_hash_table_destroy(db->cart_ht);
 
     free(db);
 }
