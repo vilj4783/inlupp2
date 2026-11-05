@@ -237,6 +237,7 @@ static bool is_in_cart(merch_t *merch, cart_t *cart)
         ioopm_list_iterator_destroy(cart_pointer_iterator);
         return false;
     }
+    return false;
 }
 
 static cart_t *create_cart(size_t id)
@@ -692,6 +693,7 @@ bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, databas
         return false;
 
     }
+    return false;
 
 }
 

@@ -28,10 +28,16 @@ linked_list_iterator.o: ./libs/inlupp1/linked_list_iterator.o
 %.o:  %.c
 	$(CC) $(CFLAGS) $^ -c
 
-.PHONY: clean test_all test_backend
+.PHONY: clean test_all test_backend coverage
+
+coverage: clean
+	$(MAKE) test_backend CFLAGS="$(CFLAGS) $(GCOVFLAGS)"
+	./test_backend
+	gcov -b db_backend.c
 
 clean:
-	@rm -fv *.o ../inlupp1/*.o $(BINS)
+	@rm -fv *.o ../inlupp1/*.o ./libs/inlupp1/*.o ./libs/utils/*.o $(BINS)
+	@rm -fv *.gcda *.gcno *.gcov
 
 test_io: $(IO_TEST)
 	$(CC) $(CFLAGS) $^ -o test_io $(CUNIT_LINK)
