@@ -581,7 +581,7 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t 
     assert(merch != NULL);
     assert(shelf != NULL);
 
-    if (!is_valid_shelf(shelf))
+    if (add == 0 || !is_valid_shelf(shelf))
     {
         return false;
     }

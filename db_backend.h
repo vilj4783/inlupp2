@@ -101,7 +101,7 @@ ioopm_list_t *backend_show_stock_execute(database_t *db, char *name);
 /// @param shelf The shelf location ID
 /// @param add The number of items to add 
 /// @return True if the stock were successfully increased, false otherwise
-bool backend_replenish_execute(database_t *db, char *merch, char *shelf, int add);
+bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t add);
 
 /*
 Creates a new shopping cart in the system which is empty.

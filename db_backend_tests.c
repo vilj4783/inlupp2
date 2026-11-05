@@ -94,7 +94,6 @@ void test_replenish(void)
     CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "A1", 10));        // Only one digit
     CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "a01", 10));       // Lowercase letter
     CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "A01", 0));        // Quantity must be > 0
-    CU_ASSERT_FALSE(backend_replenish_execute(db, "Apple", "A01", -5));       // Negative quantity not allowed
     CU_ASSERT_FALSE(backend_replenish_execute(db, "NonExistent", "A01", 10)); // Merch does not exist
 
     // Valid replenishments
