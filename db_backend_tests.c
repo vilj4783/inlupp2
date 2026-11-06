@@ -147,8 +147,8 @@ void test_show_stock(void)
     CU_ASSERT_STRING_EQUAL(backend_get_location_name(s2), "C01");
     CU_ASSERT_EQUAL(backend_get_location_quantity(s2), 10);
 
-    CU_ASSERT_STRING_EQUAL(backend_get_location_name(s2), "Z99");
-    CU_ASSERT_EQUAL(backend_get_location_quantity(s2), 50);
+    CU_ASSERT_STRING_EQUAL(backend_get_location_name(s3), "Z99");
+    CU_ASSERT_EQUAL(backend_get_location_quantity(s3), 50);
 
     ioopm_list_destroy(stock_list);
     backend_quit_execute(db);
