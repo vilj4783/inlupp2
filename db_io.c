@@ -17,11 +17,6 @@
 #define INPUT_NEW_DESC "input new description: "
 #define INPUT_NEW_PRICE "input new item price: " 
 
-#define INPUT_ACTION "input action: "
-
-#define UNAVAILABLE_ACTION "action unavailable"
-#define ACTION_MSG "action:"
-
 
 bool valid_action(char *str)
 {
