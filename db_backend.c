@@ -629,7 +629,7 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t 
 
 int backend_create_cart_execute(database_t *db)
 {
-    // TODO: implement
+    assert(db != NULL);
     size_t cart_amount = ioopm_hash_table_size(db->cart_ht) + 1; // starts with id = 1
     cart_t *cart = create_cart(cart_amount);
     elem_t key = int_elem(cart_amount);
