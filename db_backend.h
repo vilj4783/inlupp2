@@ -32,15 +32,12 @@ typedef struct database database_t;
 /// @brief Structure representing a merchandise item in the store
 typedef struct merch merch_t;
 
-/// @brief Represents a specific storage location and the quantity of an item stored there.
-typedef struct shelf shelf_t;
 
 /// @brief Details of a storage location.
-struct shelf 
-{
-    char *shelf_name; /// Shelf identifier
-    size_t quantity; /// Number of items stored on this shelf
-};
+
+
+/// @brief Represents a specific storage location and the quantity of an item stored there.
+typedef struct shelf shelf_t;
 
 /// @brief Creates a new database
 /// @return A database that holds three hashtables, for merch, shelf and cart

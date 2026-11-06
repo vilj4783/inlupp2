@@ -600,7 +600,7 @@ bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t 
     }
 
     merch_t *target_merch = merch_elem.p;
-    elem_t *current = &string_elem("placeholder");
+    elem_t *current = &ptr_elem(NULL);
 
     // Shelf already in use
     if (ioopm_hash_table_lookup(shelf_ht, shelf_name, current))
@@ -656,7 +656,7 @@ bool backend_remove_cart_execute(size_t id, database_t *db)
 
 bool backend_add_to_cart_execute(size_t id, char *name, size_t item_amount, database_t *db)
 {   
-    elem_t *merch_elem = &string_elem("hello world"); // placeholder string
+    elem_t *merch_elem = &ptr_elem(NULL); // placeholder string
     elem_t *cart_elem = &ptr_elem(NULL); // placeholder ptr_elem
     
     if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem) &&
@@ -698,8 +698,8 @@ bool backend_add_to_cart_execute(size_t id, char *name, size_t item_amount, data
 
 bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount, database_t *db)
 {
-    elem_t *merch_elem = &string_elem("placeholder");
-    elem_t *cart_elem = &string_elem("placeholder");
+    elem_t *merch_elem = &ptr_elem(NULL); // placeholder
+    elem_t *cart_elem = &ptr_elem(NULL);
     elem_t key = int_elem(id);
     
     ioopm_hash_table_lookup(db->cart_ht, key, cart_elem);
@@ -747,7 +747,7 @@ int backend_calculate_cost_execute(size_t id, database_t *db)
 {
     
 
-    elem_t *cart_elem = &string_elem("placeholder");
+    elem_t *cart_elem = &ptr_elem(NULL);
     elem_t key = int_elem(id);
     
     if (!ioopm_hash_table_lookup(db->cart_ht, key, cart_elem)) return 0;
