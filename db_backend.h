@@ -103,39 +103,44 @@ ioopm_list_t *backend_show_stock_execute(database_t *db, char *name);
 /// @return True if the stock were successfully increased, false otherwise
 bool backend_replenish_execute(database_t *db, char *merch, char *shelf, size_t add);
 
-/*
-Creates a new shopping cart in the system which is empty.
-A shopping cart represents a possible order.
-Adding/removing merch to/from a cart does not change the stock for that merch – stocks are changed only during checkout.
-Shopping carts are identified by a monotonically increasing number, i.e., the number of the i’th shopping cart created is i, regardless of how many shopping carts have been removed.
-The action code shall be "C".
-*/
+/// @brief Creates a new shopping cart in the system which is empty
+/// @pre db != NULL
+/// @param db The database to add the cart into
+/// @return The id of the new cart
 int backend_create_cart_execute(database_t *db);
 
-
-/*
-Removes a shopping cart from the system.
-The action code shall be "R". The action shall read the id of the cart and a confirmation string. The cart shall be removed only if the confirmation string begins with "Y" or "y".
-*/
+/// @brief Removes a shopping cart from the system.
+/// @pre db != NULL
+/// @param id The id of the cart to remove
+/// @param db The database to remove the cart from
+/// @return True if the cart is removed, false otherwise
 bool backend_remove_cart_execute(size_t id, database_t *db);
 
-/*
-Adds some quantity of a merch to a specific shopping cart.
-All possible orders in the system must be fullfillable. For example, we may only have one or more carts with 12 items of a merch X if the total stock of X in the system at least 12. Thus, if all users go to checkout at the same time, they should all succeed.
-The action code shall be "+". The action shall read the id of the cart, the name of the merch and the number of items.
-*/
-bool backend_add_to_cart_execute(size_t id, char *name, int item_amount, database_t *db);
+/// @brief Adds some quantity of a merch to a specific shopping cart
+/// @pre name != NULL
+/// @pre db != NULL
+/// @param id The id of the cart 
+/// @param name The name of the merch 
+/// @param item_amount The amount of merch items to add into cart 
+/// @param db The database where the cart and merch exist 
+/// @return True if the amount could be added into cart, false otherwise
+bool backend_add_to_cart_execute(size_t id, char *name, size_t item_amount, database_t *db);
 
-/*
-Removes zero or more items of some merch from a particular cart.
-The action code shall be "-". The action shall read the id of the cart, the name of the merch and the number of items.
-*/
-bool backend_remove_from_cart_execute(size_t id, char *name, int item_amount, database_t *db);
+/// @brief Removes zero or more items of some merch from a particular cart
+/// @pre name != NULL
+/// @pre db != NULL
+/// @param id The id of the cart
+/// @param name The name of the merch
+/// @param item_amount THe amount of merch items to remove from the cart
+/// @param db The database wehere the cart and merch exist
+/// @return True if the amount could be removed from the cart, false otherwise
+bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount, database_t *db);
 
-/*
-Calculate the cost of a shopping cart. If a cart holds 2 items of a merch M1 with a price of 50 and 8 items of a merch M2 with a price of 3 the cost of the cart is 2×50+8×3=124
-The action code shall be "=". The action shall read the id of the cart.
-*/
+/// @brief Calculate the total cost of the items in the shopping cart
+/// @pre db != NULL
+/// @param id The id of the cart
+/// @param db The database where the cart exist
+/// @return The total cost of the items in the cart
 int backend_calculate_cost_execute(size_t id, database_t *db);
 
 /*
@@ -149,7 +154,8 @@ bool backend_undo_execute(database_t *db);
 /// @brief Destroys the database and frees all allocated memory associated with it.
 /// Frees all merchandise, shelf allocations, duplicated strings, internal hash tables,
 /// and the database struct itself.
-/// @param db The database to destroy. If database is NULL, no operation is performed.
+/// @pre db != NULL
+/// @param db The database to destroy. If database is NULL, no operation is performed
 void backend_quit_execute(database_t *db);
 
 /*
@@ -157,12 +163,40 @@ The program should save its data on disk between runs. There is a discussion abo
 */
 void backend_persistence_on_file(database_t *db);
 
-
+/// @brief A user going through with the purchase of all items in their shopping cart 
+/// and also removes the cart from the system
+/// @pre db != NULL
+/// @param id The id of the cart
+/// @param db The database where the cart exist
+/// @return True if the checkout went through otherwise false
 bool backend_checkout_execute(size_t id, database_t *db);
 
+/// @brief Retrieves the name of the merch for db_main
+/// @pre merch != NULL
+/// @param merch The merch to get the name from
+/// @return The name of the merch
 char *get_merch_name(merch_t *merch);
+
+/// @brief Retrieves the description of the merch for db_main
+/// @pre merch != NULL
+/// @param merch The merch to get the description from
+/// @return The description of the merch
 char *get_merch_desc(merch_t *merch);
+
+/// @brief Retrieves the price of the merch for db_main
+/// @pre merch != NULL
+/// @param merch The merch to get the price from
+/// @return The price of the merch
 int get_merch_price(merch_t *merch);
 
+/// @brief Retrieves the shelf name for db_main
+/// @pre location != NULL
+/// @param location The shelf to get the name from
+/// @return The name of the shelf
 char *get_location_name(shelf_t *location);
+
+/// @brief Retrieves the quantity of the shekf for db_main
+/// @pre location != NULL
+/// @param location The shelf to get the quantity from
+/// @return The quantity of the shelf
 int get_location_quantity(shelf_t *location);
