@@ -1,4 +1,5 @@
 #pragma once
+#include <stdbool.h>
 
 enum ACTION {
     ADD_MERCH,
