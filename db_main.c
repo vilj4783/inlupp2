@@ -6,20 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define INPUT_ITEM "input item name: "
-#define INPUT_CART "input cart id: "
-
-#define INPUT_DESC "input item description: "
-#define INPUT_PRICE "input item price: "
-#define INPUT_AMOUNT "input amount of items: "
-
-#define INPUT_OLD_NAME "input old name: "
-#define INPUT_NEW_NAME "input new name: "
-#define INPUT_NEW_DESC "input new description: "
-#define INPUT_NEW_PRICE "input new item price: " 
-
 #define INPUT_ACTION "input action: "
-
 #define UNAVAILABLE_ACTION "action unavailable"
 #define ACTION_MSG "action:"
 
