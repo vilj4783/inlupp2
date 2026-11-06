@@ -28,7 +28,7 @@ linked_list_iterator.o: ./libs/inlupp1/linked_list_iterator.o
 %.o:  %.c
 	$(CC) $(CFLAGS) $^ -c
 
-.PHONY: clean test_all test_backend coverage
+.PHONY: clean test_all test_backend coverage run_backend run_main
 
 coverage: clean
 	$(MAKE) test_backend CFLAGS="$(CFLAGS) $(GCOVFLAGS)"
@@ -50,3 +50,9 @@ test_main: $(MAIN_TEST)
 test_backend: $(BACKEND_TEST)
 	$(CC) $(CFLAGS) $^ -o test_backend $(CUNIT_LINK)
 	# && valgrind --leak-check=full ./test_backend
+
+run_backend: test_backend
+	valgrind --leak-check=full -s ./test_backend
+
+run_main: test_main
+	valgrind --leak-check=full -s ./test_main < webstoretest.txt

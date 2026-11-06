@@ -138,17 +138,17 @@ void test_show_stock(void)
     shelf_t *s2 = ioopm_list_get(stock_list, 2).p;
     shelf_t *s3 = ioopm_list_get(stock_list, 3).p;
 
-    CU_ASSERT_STRING_EQUAL(s0->shelf_name, "A05");
-    CU_ASSERT_EQUAL(s0->quantity, 25);
+    CU_ASSERT_STRING_EQUAL(backend_get_location_name(s0), "A05");
+    CU_ASSERT_EQUAL(backend_get_location_quantity(s0), 25);
 
-    CU_ASSERT_STRING_EQUAL(s1->shelf_name, "B02");
-    CU_ASSERT_EQUAL(s1->quantity, 5);
+    CU_ASSERT_STRING_EQUAL(backend_get_location_name(s1), "B02");
+    CU_ASSERT_EQUAL(backend_get_location_quantity(s1), 5);
 
-    CU_ASSERT_STRING_EQUAL(s2->shelf_name, "C01");
-    CU_ASSERT_EQUAL(s2->quantity, 10);
+    CU_ASSERT_STRING_EQUAL(backend_get_location_name(s2), "C01");
+    CU_ASSERT_EQUAL(backend_get_location_quantity(s2), 10);
 
-    CU_ASSERT_STRING_EQUAL(s3->shelf_name, "Z99");
-    CU_ASSERT_EQUAL(s3->quantity, 50);
+    CU_ASSERT_STRING_EQUAL(backend_get_location_name(s2), "Z99");
+    CU_ASSERT_EQUAL(backend_get_location_quantity(s2), 50);
 
     ioopm_list_destroy(stock_list);
     backend_quit_execute(db);
