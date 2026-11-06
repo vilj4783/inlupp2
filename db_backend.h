@@ -160,9 +160,9 @@ void backend_persistence_on_file(database_t *db);
 
 bool backend_checkout_execute(size_t id, database_t *db);
 
-char *get_merch_name(merch_t *merch);
-char *get_merch_desc(merch_t *merch);
-int get_merch_price(merch_t *merch);
+char *backend_get_merch_name(merch_t *merch);
+char *backend_get_merch_desc(merch_t *merch);
+int backend_get_merch_price(merch_t *merch);
 
-char *get_location_name(shelf_t *location);
-int get_location_quantity(shelf_t *location);
+char *backend_get_location_name(shelf_t *location);
+int backend_get_location_quantity(shelf_t *location);

@@ -827,29 +827,28 @@ void backend_persistence_on_file(database_t *db)
     // TODO: (JSON or similar solution)
 }
 
-char *get_merch_name(merch_t *merch)
+char *backend_get_merch_name(merch_t *merch)
 {
     return merch->name;
 }
 
-char *get_merch_desc(merch_t *merch)
+char *backend_get_merch_desc(merch_t *merch)
 {
     return merch->desc;
 }
 
-int get_merch_price(merch_t *merch)
+int backend_get_merch_price(merch_t *merch)
 {
     return merch->price;
 }
 
 
-
-char *get_location_name(shelf_t *location)
+char *backend_get_location_name(shelf_t *location)
 {
     return location->shelf_name;
 }
 
-size_t get_location_quantity(shelf_t *location)
+size_t backend_get_location_quantity(shelf_t *location)
 {
     return location->quantity;
 }

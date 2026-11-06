@@ -1,8 +1,6 @@
 #include "./db_io.h"
 #include "./db_backend.h"
-#include "./db_common.h"
 #include "./libs/inlupp1/linked_list_iterator.h"
-#include "./libs/utils/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -112,7 +110,7 @@ void show_stock_unify(database_t *db)
     while(!ioopm_list_iterator_at_end(iter))
     {
         shelf_t *location = ioopm_list_iterator_current(iter).p;
-        printf("name: %s quantity: %d\n", get_location_name(location), get_location_quantity(location));
+        printf("name: %s quantity: %d\n", backend_get_location_name(location), backend_get_location_quantity(location));
         ioopm_list_iterator_advance(iter);
     }
 
@@ -136,8 +134,7 @@ void replenish_unify(database_t *db)
     replenish_input(&location_name, &item_name, &item_amount);
 
     void replenish_input(char **location_name, char **item_name, int *item_amount);
-    // implementation depends on whether backend_replenish_execute takes int id or char *location name
-    // CHEAT: assumes for location_name for now
+    // CHEAT: replenish input does not verify if shelf name is valid
     bool success = backend_replenish_execute(db, item_name, location_name, item_amount);
     printf("%s %s merch %s at location %s by %d\n",
         ACTION_MSG,
