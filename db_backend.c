@@ -725,9 +725,9 @@ bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount,
 
             } else
             {
-                destroy_cart_entry(entry, id);
                 merch->unclaimed_stock += entry->merch_amount;
-                ioopm_list_iterator_destroy;(entry_iterator);
+                destroy_cart_entry(entry, id);
+                ioopm_list_iterator_remove(entry_iterator);
 
                 ioopm_list_iterator_destroy(entry_iterator);
                 return true;

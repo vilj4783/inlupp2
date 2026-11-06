@@ -238,32 +238,35 @@ void test_add_to_remove_from_cart(void)
     backend_add_merch_execute("Orange", "Fruit", 12, db);
     backend_add_merch_execute("Pear", "Fruit", 15, db);
 
-    backend_replenish_execute(db, "Apple", "A01", 20);
+    backend_replenish_execute(db, "Apple", "A01", 1);
     backend_replenish_execute(db, "Orange", "B01", 20);
-    backend_replenish_execute(db, "Pear", "C01", 3);
+    backend_replenish_execute(db, "Pear", "C01", 5);
 
     backend_create_cart_execute(db); // cart 1
     backend_create_cart_execute(db); // cart 2
     backend_create_cart_execute(db); // cart 3
 
     CU_ASSERT(backend_add_to_cart_execute(1, "Apple", 1, db));
-    CU_ASSERT(backend_add_to_cart_execute(1, "Pear", 3, db));
+    CU_ASSERT(backend_add_to_cart_execute(1, "Pear", 5, db));
+    CU_ASSERT(backend_remove_from_cart_execute(1, "Pear", 2, db));
 
     CU_ASSERT(backend_add_to_cart_execute(2, "Orange", 1, db));
     CU_ASSERT_FALSE(backend_add_to_cart_execute(2, "Banana", 2, db));
-    CU_ASSERT_FALSE(backend_add_to_cart_execute(2, "Pear", 2, db));
+    CU_ASSERT(backend_add_to_cart_execute(2, "Pear", 2, db));
 
+    CU_ASSERT_FALSE(backend_remove_from_cart_execute(2, "Banana", 2, db));
+    CU_ASSERT(backend_remove_from_cart_execute(2, "Orange", 2, db));
     CU_ASSERT_EQUAL(55, backend_calculate_cost_execute(1, db));
-    CU_ASSERT_EQUAL(12, backend_calculate_cost_execute(2, db));
+    CU_ASSERT_EQUAL(30, backend_calculate_cost_execute(2, db));
     CU_ASSERT_EQUAL(0, backend_calculate_cost_execute(3, db));
 
     CU_ASSERT(backend_checkout_execute(1, db));
-
+    
     ioopm_list_t *pear_list = backend_show_stock_execute(db, "Pear");
     ioopm_list_t *apple_list = backend_show_stock_execute(db, "Apple");
     
-    CU_ASSERT(ioopm_list_is_empty(pear_list));
-    CU_ASSERT_FALSE(ioopm_list_is_empty(apple_list))
+    CU_ASSERT_FALSE(ioopm_list_is_empty(pear_list));
+    CU_ASSERT(ioopm_list_is_empty(apple_list));
 
     ioopm_list_destroy(pear_list);
     ioopm_list_destroy(apple_list);
