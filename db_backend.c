@@ -51,13 +51,14 @@ size_t id_hash(elem_t id)
     return id.i;
 }
 
-typedef struct shelf shelf_t;
 
 struct shelf 
 {
     char *shelf_name;
     size_t quantity;
 };
+
+typedef struct shelf shelf_t;
 
 bool id_key_eq(elem_t k1, elem_t k2)
 {

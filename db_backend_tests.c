@@ -240,7 +240,7 @@ void test_add_to_remove_from_cart(void)
 
     backend_replenish_execute(db, "Apple", "A01", 1);
     backend_replenish_execute(db, "Orange", "B01", 20);
-    backend_replenish_execute(db, "Pear", "C01", 5);
+    backend_replenish_execute(db, "Pear", "C01", 6);
 
     backend_create_cart_execute(db); // cart 1
     backend_create_cart_execute(db); // cart 2
@@ -271,6 +271,7 @@ void test_add_to_remove_from_cart(void)
     ioopm_list_destroy(pear_list);
     ioopm_list_destroy(apple_list);
 
+    CU_ASSERT(backend_add_to_cart_execute(2, "Pear", 1, db));    
     CU_ASSERT(backend_remove_merch_execute("Pear", db));
 
     CU_ASSERT(backend_remove_cart_execute(2, db));

@@ -175,28 +175,28 @@ bool backend_checkout_execute(size_t id, database_t *db);
 /// @pre merch != NULL
 /// @param merch The merch to get the name from
 /// @return The name of the merch
-char *get_merch_name(merch_t *merch);
+char *backend_get_merch_name(merch_t *merch);
 
 /// @brief Retrieves the description of the merch for db_main
 /// @pre merch != NULL
 /// @param merch The merch to get the description from
 /// @return The description of the merch
-char *get_merch_desc(merch_t *merch);
+char *backend_get_merch_desc(merch_t *merch);
 
 /// @brief Retrieves the price of the merch for db_main
 /// @pre merch != NULL
 /// @param merch The merch to get the price from
 /// @return The price of the merch
-int get_merch_price(merch_t *merch);
+int backend_get_merch_price(merch_t *merch);
 
 /// @brief Retrieves the shelf name for db_main
 /// @pre location != NULL
 /// @param location The shelf to get the name from
 /// @return The name of the shelf
-char *get_location_name(shelf_t *location);
+char *backend_get_location_name(shelf_t *location);
 
 /// @brief Retrieves the quantity of the shekf for db_main
 /// @pre location != NULL
 /// @param location The shelf to get the quantity from
 /// @return The quantity of the shelf
-int get_location_quantity(shelf_t *location);
+int backend_get_location_quantity(shelf_t *location);
