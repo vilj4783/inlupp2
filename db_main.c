@@ -25,9 +25,11 @@
 
 void add_merch_unify(database_t *db)
 {
-    char *item_name = ask_question_string(INPUT_ITEM);
-    char *item_desc = ask_question_string(INPUT_DESC);
-    int item_price = ask_question_int(INPUT_PRICE);
+    char *item_name; 
+    char *item_desc;
+    int item_price; 
+    
+    add_merch_input(&item_name, &item_desc, &item_price);
 
     bool success = backend_add_merch_execute(item_name, item_desc, item_price, db);
     printf("%s %s merch %s, description %s, price %d\n",
@@ -66,7 +68,8 @@ void list_merch_unify(database_t *db)
 
 void remove_merch_unify(database_t *db)
 {
-    char *item_name = ask_question_string(INPUT_ITEM);
+    char *item_name;
+    remove_merch_input(&item_name);
 
     if (ask_question_confirm_Y())
     {
@@ -82,10 +85,12 @@ void remove_merch_unify(database_t *db)
 
 void edit_merch_unify(database_t *db)
 {
-    char *item_name_old = ask_question_string(INPUT_OLD_NAME);
-    char *item_name_new = ask_question_string(INPUT_NEW_NAME);
-    char *item_desc_new = ask_question_string(INPUT_NEW_DESC);
-    int item_price_new= ask_question_int(INPUT_NEW_PRICE);
+    char *item_name_old;
+    char *item_name_new;
+    char *item_desc_new;
+    int item_price_new;
+
+    edit_merch_input(&item_name_old, &item_name_new, &item_desc_new, &item_price_new);
 
     if (ask_question_confirm_Y())
     {
@@ -111,7 +116,8 @@ void edit_merch_unify(database_t *db)
 
 void show_stock_unify(database_t *db)
 {
-    char *item_name = ask_question_string(INPUT_ITEM);
+    char *item_name;
+    show_stock_input(&item_name);
 
     ioopm_list_t *list = backend_show_stock_execute(db, item_name);
     ioopm_list_iterator_t *iter = ioopm_list_iterator_create(list);
@@ -136,10 +142,13 @@ void show_stock_unify(database_t *db)
 
 void replenish_unify(database_t *db)
 {
-    char *location_name = ask_question_string("input location name: ");
-    char *item_name = ask_question_string(INPUT_ITEM);
-    int item_amount = ask_question_int(INPUT_AMOUNT);
+    char *location_name;
+    char *item_name;
+    int item_amount;
 
+    replenish_input(&location_name, &item_name, &item_amount);
+
+    void replenish_input(char **location_name, char **item_name, int *item_amount);
     // implementation depends on whether backend_replenish_execute takes int id or char *location name
     // CHEAT: assumes for location_name for now
     bool success = backend_replenish_execute(db, item_name, location_name, item_amount);
@@ -163,7 +172,8 @@ void create_cart_unify(database_t *db)
 
 void remove_cart_unify(database_t *db)
 {
-    int cart_id = ask_question_int(INPUT_CART);
+    int cart_id;
+    remove_cart_input(&cart_id);
     
     if (ask_question_confirm_Y())
     {
@@ -181,9 +191,10 @@ void remove_cart_unify(database_t *db)
 
 void add_to_cart_unify(database_t *db)
 {
-    int cart_id = ask_question_int(INPUT_CART);
-    char *item_name = ask_question_string(INPUT_ITEM);
-    int item_amount = ask_question_int(INPUT_AMOUNT);
+    int cart_id;
+    char *item_name;
+    int item_amount;
+    add_to_cart_input(&cart_id, &item_name, &item_amount);
 
     bool success = backend_add_to_cart_execute(cart_id, item_name, item_amount, db);
     printf("%s %s %d merch %s to cart %d\n",
@@ -199,9 +210,10 @@ void add_to_cart_unify(database_t *db)
 void remove_from_cart_unify(database_t *db)
 {
     
-    int cart_id = ask_question_int(INPUT_CART);
-    char *item_name = ask_question_string(INPUT_ITEM);
-    int item_amount = ask_question_int(INPUT_AMOUNT);
+    int cart_id;
+    char *item_name;
+    int item_amount;
+    remove_from_cart_input(&cart_id, &item_name, &item_amount);
     
     bool success = backend_remove_from_cart_execute(cart_id, item_name, item_amount, db);
     printf("%s %s %d merch %s from cart %d\n",
@@ -216,7 +228,8 @@ void remove_from_cart_unify(database_t *db)
 
 void calculate_cost_unify(database_t *db)
 {
-    int cart_id = ask_question_int(INPUT_CART);
+    int cart_id;
+    calculate_cost_input(&cart_id);
 
     int cost = backend_calculate_cost_execute(cart_id, db);
     printf("%s cart %d total cost is %d\n", ACTION_MSG, cart_id, cost);
@@ -224,7 +237,8 @@ void calculate_cost_unify(database_t *db)
 
 void checkout_unify(database_t *db)
 {
-    int cart_id = ask_question_int(INPUT_CART);
+    int cart_id;
+    checkout_input(&cart_id);
     int success = backend_checkout_execute(cart_id, db);
     printf("%s %s cart %d\n", ACTION_MSG, success ? "checked out" : "failed to check out", cart_id);
 

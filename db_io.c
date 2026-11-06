@@ -5,6 +5,24 @@
 #include "db_io.h"
 #include "./libs/utils/utils.h"
 
+#define INPUT_ITEM "input item name: "
+#define INPUT_CART "input cart id: "
+
+#define INPUT_DESC "input item description: "
+#define INPUT_PRICE "input item price: "
+#define INPUT_AMOUNT "input amount of items: "
+
+#define INPUT_OLD_NAME "input old name: "
+#define INPUT_NEW_NAME "input new name: "
+#define INPUT_NEW_DESC "input new description: "
+#define INPUT_NEW_PRICE "input new item price: " 
+
+#define INPUT_ACTION "input action: "
+
+#define UNAVAILABLE_ACTION "action unavailable"
+#define ACTION_MSG "action:"
+
+
 bool valid_action(char *str)
 {
     // if(str[1] == '\n') return false; // dunno wtf is up w taht
@@ -83,4 +101,58 @@ bool ask_question_confirm_Y()
 bool ask_question_confirm_N()
 {
     return (bool) ask_question("input N or n to list more: ", (check_func *) bool_valid, (convert_func *) convert_N).int_value;
+}
+void add_merch_input(char **item_name, char **item_desc, int *item_price) {
+    *item_name = ask_question_string(INPUT_ITEM);
+    *item_desc = ask_question_string(INPUT_DESC);
+    *item_price = ask_question_int(INPUT_PRICE);
+}
+
+void remove_merch_input(char **item_name) {
+    *item_name = ask_question_string(INPUT_ITEM);
+}
+
+
+void edit_merch_input(char **item_name_old, char **item_name_new, char **item_desc_new, int *item_price_new) {
+    *item_name_old = ask_question_string(INPUT_OLD_NAME);
+    *item_name_new = ask_question_string(INPUT_NEW_NAME);
+    *item_desc_new = ask_question_string(INPUT_NEW_DESC);
+    *item_price_new= ask_question_int(INPUT_NEW_PRICE);
+}
+
+void show_stock_input(char **item_name) {
+    *item_name = ask_question_string(INPUT_ITEM);
+}
+void replenish_input(char **location_name, char **item_name, int *item_amount) {
+    *location_name = ask_question_string("input location name: ");
+    *item_name = ask_question_string(INPUT_ITEM);
+    *item_amount = ask_question_int(INPUT_AMOUNT);
+}
+
+
+void remove_cart_input(int *cart_id) {
+    *cart_id = ask_question_int(INPUT_CART);
+}
+
+void add_to_cart_input(int *cart_id, char **item_name, int *item_amount) {
+    *cart_id = ask_question_int(INPUT_CART);
+    *item_name = ask_question_string(INPUT_ITEM);
+    *item_amount = ask_question_int(INPUT_AMOUNT);
+
+}
+
+void remove_from_cart_input(int *cart_id, char **item_name, int *item_amount) {
+    *cart_id = ask_question_int(INPUT_CART);
+    *item_name = ask_question_string(INPUT_ITEM);
+    *item_amount = ask_question_int(INPUT_AMOUNT);
+
+}
+
+
+void calculate_cost_input(int *cart_id) {
+    *cart_id = ask_question_int(INPUT_CART);
+}
+
+void checkout_input(int *cart_id) {
+    *cart_id = ask_question_int(INPUT_CART);
 }
