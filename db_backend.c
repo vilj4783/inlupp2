@@ -122,8 +122,8 @@ static bool merch_cart_entry_destroy(merch_t *merch, cart_t *cart) // removes a 
             if (entry->merch == merch) // compares addresses
             {
                 // destroys cart entry and removes it from list
-                destroy_cart_entry(entry, cart->cart_id);
                 free(entry);
+                ioopm_list_iterator_remove(entry_iterator);
             } else {
                 ioopm_list_iterator_advance(entry_iterator);
             }

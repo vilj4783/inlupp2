@@ -271,6 +271,8 @@ void test_add_to_remove_from_cart(void)
     ioopm_list_destroy(pear_list);
     ioopm_list_destroy(apple_list);
 
+    CU_ASSERT(backend_remove_merch_execute("Pear", db));
+
     CU_ASSERT(backend_remove_cart_execute(2, db));
     CU_ASSERT(backend_remove_cart_execute(3, db));
     
