@@ -31,9 +31,13 @@ linked_list_iterator.o: ./libs/inlupp1/linked_list_iterator.o
 .PHONY: clean test_all test_backend coverage run_backend run_main
 
 coverage: clean
-	$(MAKE) test_backend CFLAGS="$(CFLAGS) $(GCOVFLAGS)"
+	$(MAKE) test_all CFLAGS="$(CFLAGS) $(GCOVFLAGS)"
 	./test_backend
+	./test_io < test_input.txt
+	./test_main < webstoretest.txt
 	gcov -b db_backend.c
+	gcov -b db_io.c
+	gcov -b db_main.c
 
 clean:
 	@rm -fv *.o ../inlupp1/*.o ./libs/inlupp1/*.o ./libs/utils/*.o $(BINS)

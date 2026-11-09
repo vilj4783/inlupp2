@@ -25,8 +25,17 @@ Coverage measured with `gcov -b`:
 
 # Coverage Report
 **`db_backend.c`**
-* Lines executed: 91,10%
-* Branches executed: 98,13%
+* Lines executed: 94,63%
+* Branches executed: 100%
+
+**`db_io.c`**
+* Lines executed: 97,75%
+* Branches executed: 100%
+
+**`db_main.c`**
+* Lines executed: 90,98%
+* Branches executed: 96,23%
+
 
 ## 2. Integrated Components and Attribution
 Generic data structures are integrated from two separate sources according to assignment requirements:
