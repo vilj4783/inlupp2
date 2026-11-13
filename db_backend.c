@@ -103,7 +103,7 @@ static void destroy_cart(cart_t *cart)
     {
         cart_entry_t *current_entry = ioopm_list_iterator_current(iter).p;
         current_entry->merch->unclaimed_stock += current_entry->merch_amount;
-        destroy_cart_entry(ioopm_list_iterator_current(iter).p, cart->cart_id);
+        destroy_cart_entry(current_entry, cart->cart_id);
         ioopm_list_iterator_advance(iter); 
     }
 
