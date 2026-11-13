@@ -101,6 +101,8 @@ static void destroy_cart(cart_t *cart)
 
     while(!ioopm_list_iterator_at_end(iter))
     {
+        cart_entry_t *current_entry = ioopm_list_iterator_current(iter).p;
+        current_entry->merch->unclaimed_stock += current_entry->merch_amount;
         destroy_cart_entry(ioopm_list_iterator_current(iter).p, cart->cart_id);
         ioopm_list_iterator_advance(iter); 
     }
@@ -112,7 +114,6 @@ static void destroy_cart(cart_t *cart)
 
 static bool merch_cart_entry_destroy(merch_t *merch, cart_t *cart) // removes a entry of a merch in a particular cart
 {
-    // ioopm_hash_table_lookup(db->cart_ht, key, cart)
     if (cart != NULL)
     {
         
@@ -641,7 +642,6 @@ int backend_create_cart_execute(database_t *db)
 
 bool backend_remove_cart_execute(size_t id, database_t *db)
 {
-    // TODO: restore  cart reserved merch
     elem_t *cart_elem = &ptr_elem(NULL); // placeholder
 
     elem_t key = int_elem(id);
@@ -740,7 +740,7 @@ bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount,
     ioopm_list_iterator_destroy(entry_iterator);
 
 
-    return false; // CHEAT:
+    return false;
 }
 
 int backend_calculate_cost_execute(size_t id, database_t *db)
@@ -780,6 +780,18 @@ bool backend_undo_execute(database_t *db)
 void backend_quit_execute(database_t *db)
 {
     assert(db != NULL);
+    // Destroy cart hash table (if allocated)
+    ioopm_hash_table_iterator_t *cart_iter = ioopm_hash_table_iterator_create(db->cart_ht);
+    while(!ioopm_hash_table_iterator_at_end(cart_iter)) 
+    {
+        destroy_cart((cart_t *) (ioopm_hash_table_iterator_current_value(cart_iter).p));
+        ioopm_hash_table_iterator_advance(cart_iter);
+    }
+
+    // Destroy cart hash table (if allocated)
+    ioopm_hash_table_iterator_destroy(cart_iter);
+    ioopm_hash_table_destroy(db->cart_ht);
+
 
     // Free all items and their shelfs i merch_ht
     if (db->merch_ht != NULL)
@@ -808,18 +820,6 @@ void backend_quit_execute(database_t *db)
         ioopm_hash_table_iterator_destroy(it_shelf);
         ioopm_hash_table_destroy(db->shelf_ht);
     }
-    // Destroy cart hash table (if allocated)
-    ioopm_hash_table_iterator_t *cart_iter = ioopm_hash_table_iterator_create(db->cart_ht);
-    while(!ioopm_hash_table_iterator_at_end(cart_iter)) 
-    {
-        destroy_cart((cart_t *) (ioopm_hash_table_iterator_current_value(cart_iter).p));
-        ioopm_hash_table_iterator_advance(cart_iter);
-    }
-
-    // Destroy cart hash table (if allocated)
-    ioopm_hash_table_iterator_destroy(cart_iter);
-    ioopm_hash_table_destroy(db->cart_ht);
-
     free(db);
 }
 
@@ -855,16 +855,7 @@ size_t backend_get_location_quantity(shelf_t *location)
 }
 
 
-/*
-ioopm_list_t *backend_show_stock_execute(char *name, database_t *db) {
-    elem_t result;
-    if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), &result))
-    {
-        return ((merch_t *)result.p)->locations;
-    }
-    return NULL;
-}
-*/
+
 bool backend_checkout_execute(size_t id, database_t *db)
 {
     elem_t cart_elem = string_elem("placeholder");
@@ -896,7 +887,7 @@ bool backend_checkout_execute(size_t id, database_t *db)
                 {
                     cart_entry->merch_amount -= location->quantity;
                     location->quantity = 0;
-                    destroy_shelf(location); // FIXME: destroy location
+                    destroy_shelf(location);
                     ioopm_list_iterator_remove(locations);
                 }
             }
