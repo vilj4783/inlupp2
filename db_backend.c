@@ -656,7 +656,7 @@ bool backend_remove_cart_execute(size_t id, database_t *db)
 
 bool backend_add_to_cart_execute(size_t id, char *name, size_t item_amount, database_t *db)
 {   
-    elem_t *merch_elem = &ptr_elem(NULL); // placeholder string
+    elem_t *merch_elem = &ptr_elem(NULL); // placeholder ptr_elem
     elem_t *cart_elem = &ptr_elem(NULL); // placeholder ptr_elem
     
     if(ioopm_hash_table_lookup(db->merch_ht, string_elem(name), merch_elem) &&
@@ -676,7 +676,6 @@ bool backend_add_to_cart_execute(size_t id, char *name, size_t item_amount, data
                 cart_entry_t *entry = ioopm_list_iterator_current(entry_iterator).p;
                 if (entry->merch == merch) // compares addresses
                 {
-                    // destroys cart entry and removes it from list
                     entry->merch_amount += item_amount;
                 }
                 ioopm_list_iterator_advance(entry_iterator);
@@ -714,7 +713,7 @@ bool backend_remove_from_cart_execute(size_t id, char *name, size_t item_amount,
     while (!ioopm_list_iterator_at_end(entry_iterator))
     {
         entry = ioopm_list_iterator_current(entry_iterator).p;
-        if (entry->merch == merch) // FIXME: once again identifer comparison might be needed
+        if (entry->merch == merch) 
         {
             if (entry->merch_amount > item_amount)
             {
@@ -780,6 +779,7 @@ bool backend_undo_execute(database_t *db)
 void backend_quit_execute(database_t *db)
 {
     assert(db != NULL);
+
     // Destroy cart hash table (if allocated)
     ioopm_hash_table_iterator_t *cart_iter = ioopm_hash_table_iterator_create(db->cart_ht);
     while(!ioopm_hash_table_iterator_at_end(cart_iter)) 

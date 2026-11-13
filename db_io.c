@@ -20,7 +20,6 @@
 
 bool valid_action(char *str)
 {
-    // if(str[1] == '\n') return false; // dunno wtf is up w taht
 
     char c = toupper(str[0]);
 
@@ -64,7 +63,7 @@ action_t convert_action(char *str)
     case 'O': return CHECKOUT;
     case 'U': return UNDO;
     case 'Q': return QUIT;
-    default: return PERSISTENCE_ON_FILE; // should never happen so error case
+    default: return PERSISTENCE_ON_FILE; // should never happen so error case. change if implemented
     }
 
 }

@@ -31,7 +31,6 @@ void add_merch_unify(database_t *db)
 
 void list_merch_unify(database_t *db)
 {
-    // IO should be handled here maybe create iterator
     ioopm_list_t *list = backend_list_merch_execute(db);
     ioopm_list_iterator_t *iter = ioopm_list_iterator_create(list);
     do {
@@ -39,7 +38,6 @@ void list_merch_unify(database_t *db)
         {
             char *merch_name = ioopm_list_iterator_current(iter).s;
             printf("name: %s\n", merch_name);
-            // printf("name: %s price: %d desc: %s \n", get_merch_name(merch), get_merch_price(merch), get_merch_desc(merch));
             ioopm_list_iterator_advance(iter);
         }
     } while (!ioopm_list_iterator_at_end(iter) && ask_question_confirm_N());
@@ -134,7 +132,7 @@ void replenish_unify(database_t *db)
     replenish_input(&location_name, &item_name, &item_amount);
 
     void replenish_input(char **location_name, char **item_name, int *item_amount);
-    // CHEAT: replenish input does not verify if shelf name is valid
+    // shelf name validity is verified by backend
     bool success = backend_replenish_execute(db, item_name, location_name, item_amount);
     printf("%s %s merch %s at location %s by %d\n",
         ACTION_MSG,
@@ -149,7 +147,6 @@ void replenish_unify(database_t *db)
 
 void create_cart_unify(database_t *db)
 {
-    // FIXME: backend_create_cart_execute needs to return an int for id
     int cart_id = backend_create_cart_execute(db);
     printf("%s created cart with id: %d\n", ACTION_MSG, cart_id);
 }
